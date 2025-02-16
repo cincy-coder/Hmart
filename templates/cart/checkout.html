@@ -1,0 +1,331 @@
+{% extends 'main/base.html' %}
+
+{% block content %}
+{% load cart_tag %}
+<style>
+    .payment-option {
+        display: flex;
+        align-items: center;
+        margin-bottom: 10px; /* Adds spacing between options */
+    }
+    
+    .payment-option input[type="radio"] {
+        width: 12px; /* Adjust size */
+        height: 12px; /* Adjust size */
+        margin-bottom: 12px;
+        margin-right: 10px; /* Space between radio button and text */
+        accent-color: #266BF9; /* Optional: Customize color for modern browsers */
+    }
+    
+    .payment-option label {
+        font-size: 16px; /* Slightly increased text size */
+        color:#266BF9;
+        line-height: 1.5; /* Improved readability */
+    }
+    
+        /*CHECK BOX*/
+        .checkbox-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            align-items: flex-start;
+        }
+        
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .small-checkbox {
+            width: 15px; /* Smaller size */
+            height: 15px;
+            cursor: pointer;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        p {
+            color: green;
+            font-weight: bold;
+            font-size:20px;
+            margin-left: 25px; /* Aligns label with the text */
+
+                .address-container {
+                    display: grid;
+                    grid-template-columns: repeat(2, 1fr); /* Two columns */
+                    gap: 15px; /* Space between items */
+                    margin-bottom: 20px;
+                }
+            
+                .address-item {
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                }
+            
+                .address-radio {
+                    width: 16px;
+                    height: 16px;
+                    cursor: pointer;
+                }
+            
+                .card {
+                    width: 100%;
+                    max-width: 280px;
+                    border: 1px solid #ccc;
+                    border-radius: 5px;
+                    padding: 15px;
+                    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+                }
+            
+                .card-title {
+                    color: #266BF9;
+                }
+            
+                .card-actions {
+                    display: flex;
+                    gap: 10px;
+                    margin-top: 10px;
+                }
+            
+                .edit-link {
+                    text-decoration: none;
+                    color: #266BF9;
+                }
+            
+                .delete-button {
+                    background: none;
+                    border: none;
+                    color: red;
+                    cursor: pointer;
+                }
+        
+        }
+    </style>
+
+        <!-- checkout area start -->
+        <form method="post" action="{% url 'place_order' %}" >
+        {% csrf_token%}
+        <div class="checkout-area pt-100px pb-100px">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-7">
+                        <div class="billing-info-wrap">
+                            <h3>Billing Details</h3>
+                            
+
+                            <input type="hidden" value="{{order_id}}" name="order_id">
+                            <input type="hidden" value="{{payment}}" name="payment">
+                            <!-- Add New Address Button -->
+                            <div style="text-align: center; margin-top: 20px;">
+                            <a href="{% url 'add_address' %}" style="display: inline-block; padding: 15px 25px; font-size: 18px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);">
+                                Add New Address
+                            </a>
+                            </div>
+                            <br> <br><hr>
+                            {% if addresses %}
+    {% for address in addresses %}
+        <div style="display: flex; align-items: center; margin-bottom: 15px;">
+            <!-- Small Radio Button Outside the Card -->
+            <input type="radio" name="selected_address" id="address_{{ address.id }}" value="{{ address.id }}"
+                style="margin-right: 10px; width: 16px; height: 16px; cursor: pointer;"
+                {% if forloop.first %}checked{% endif %}> <!-- First address is checked by default -->
+        
+            <!-- Address Card -->
+            <div class="card" style="width: 30rem; border: 1px solid #ccc; border-radius: 5px; padding: 15px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);">
+                <div class="card-body">
+                    <h5 class="card-title" style="color:#266BF9">{{ address.firstname }} {{ address.lastname }}</h5>
+                    <p class="card-text" style="margin: 5px 0;">
+                        <!--{{ address.address }}<br>
+                        {{ address.city }}, {{ address.state }} - {{ address.postcode }}<br>
+                        {{ address.country }}<br>-->
+                        Phone: {{ address.phone }}<br>
+                        Email: {{ address.email }}
+                    </p>
+                    <div style="display: flex; gap: 10px; margin-top: 10px;">
+                        <a href="{% url 'edit_address' address.id %}" style="text-decoration: none; color: #266BF9;">Edit</a>
+                        <form action="{% url 'delete_address' address.id %}" method="post" style="display: inline;">
+                            {% csrf_token %}
+                            <button type="submit" style="background: none; border: none; color: red; cursor: pointer;">Delete</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+{% else %}
+    <div style="padding: 15px; background-color: #ffcccc; color: red; border: 1px solid red; border-radius: 5px; text-align: center;">
+        <strong>No address added yet.</strong> Please add a new address.
+    </div>
+{% endif %}
+                            
+                            
+                        </div>
+                    </div>
+                    <div class="col-lg-5 mt-md-30px mt-lm-30px ">
+                        <div class="your-order-area">
+                            <h3>Your order</h3>
+                            <div class="your-order-wrap gray-bg-4">
+                                <div class="your-order-product-info">
+                                    <div class="your-order-top">
+                                        <ul>
+                                            <li>Product</li>
+                                            <li>Total</li>
+                                        </ul>
+                                    </div>
+                                    <div class="your-order-middle">
+                                        <ul>
+                                            {% for key,value in request.session.cart.items %}
+                                            <li><span class="order-middle-left">{{value.name | truncatewords:4}} X {{value.quantity}}</span> <span
+                                                class="order-price">{{ value.price|multiply:value.quantity }}/- </span></li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                    <div class="your-order-bottom">
+                                        <ul>
+                                            <li class="your-order-shipping">Shipping Charge:</li>
+                                            <li>1070/-</li>
+                                        </ul>
+                                    </div>
+                                  
+                                </div>
+                                <div class="payment-method">
+                                    <div class="payment-accordion element-mrg">
+                                        <div id="faq" class="panel-group">
+                                            <div class="panel panel-default single-my-account m-0">
+                                                
+                                                
+                                            </div>
+
+
+
+                                            <div class="panel panel-default single-my-account m-0">
+                                                <div class="panel panel-default single-my-account m-0">
+                                                    <div class="panel-heading my-account-title">
+                                                        
+                                                        <div class="payment-option">
+                                                            <input type="radio" id="cash-on-delivery" name="payment-method" value="cash-on-delivery">
+                                                            <label for="cash-on-delivery">Cash on Delivery</label>
+                                                        </div>
+                                                        <div class="payment-option">
+                                                            <input type="radio" id="razorpay" name="payment-method" value="razorpay">
+                                                            <label for="razorpay">Online Payment</label>
+                                                        </div>
+                                                        <div class="payment-option">
+                                                            <input type="radio" id="buynow" name="payment-method" value="buynow">
+                                                            <label for="razorpay">Buy Now</label>
+                                                        </div>
+
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="checkbox-container">
+                                                <label class="checkbox-label">
+                                                    <input type="checkbox" id="agreeCheckbox" class="small-checkbox" 
+                                                        {% if wallet.balance > 0 %}checked{% endif %}>
+                                                    <span>Wallet amount available: 
+                                                        <strong style="color: #28a745;">{{ wallet.balance }}</strong>
+                                                    </span>
+                                                </label>
+                                                <p id="messageLabel" class="hidden">
+                                                    The Amount to be Paid :  
+                                                    <strong style="color:#007BFF; font-size:22px">{{ amount_to_be_paid }}</strong>
+                                                </p>
+                                            </div>
+                                            
+                                            <li>
+                                                <input style="text:right" type="hidden" name="wallet_refund" 
+                                                    value="{{ wallet_refund }}" readonly>
+                                            </li>
+                                            <div class="your-order-total">
+                                                <ul>
+                                                    <li id="grandtotal_label" class="order-total" style="color: green; font-weight: bold; font-size:22px;">
+                                                        Total + GST
+                                                      </li>
+                                                    <li>
+                                                        <input id="grandtotal" 
+                                                               style="text-align: right; color: blue; font-weight: bold; font-size:22px;" 
+                                                               name="amount" 
+                                                               value="{{ request.session.paid_amt_checkout }}" 
+                                                               readonly>
+                                                      </li>
+                                                    
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="Place-order mt-25">
+                                
+                            </div>
+                            <div class="Place-order mt-25">
+                                <a class="btn-hover text-light"><button type="submit" class= "text-light">Continue</button></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- checkout area end -->
+    </form>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const checkbox = document.getElementById('agreeCheckbox');
+            const messageLabel = document.getElementById('messageLabel');
+            const grandtotal = document.getElementById('grandtotal');
+            const grandtotal_label = document.getElementById('grandtotal_label');
+    
+            // Payment options
+            const codOption = document.getElementById('cash-on-delivery');
+            const razorpayOption = document.getElementById('razorpay');
+            const buynowOption = document.getElementById('buynow');
+    
+            // Amount to be paid after wallet deduction
+            let amountToBePaid = parseFloat("{{ amount_to_be_paid }}");  // Convert to float for comparison
+    
+            function updatePaymentOptions() {
+                if (amountToBePaid === 0) {
+                    // Enable only Buy Now, disable & fade out the others
+                    buynowOption.checked = true;
+                    buynowOption.disabled = false;
+                    codOption.disabled = true;
+                    razorpayOption.disabled = true;
+    
+                    codOption.parentElement.style.opacity = "0.5";  // Fade effect
+                    razorpayOption.parentElement.style.opacity = "0.5";
+                    buynowOption.parentElement.style.opacity = "1";
+                } else {
+                    // Enable COD & Razorpay, disable & fade out Buy Now
+                    razorpayOption.checked = true;
+                    buynowOption.disabled = true;
+                    codOption.disabled = false;
+                    razorpayOption.disabled = false;
+    
+                    buynowOption.parentElement.style.opacity = "0.5";  // Fade effect
+                    codOption.parentElement.style.opacity = "1";
+                    razorpayOption.parentElement.style.opacity = "1";
+                }
+            }
+    
+            checkbox.addEventListener('change', function () {
+                if (checkbox.checked) {
+                    messageLabel.classList.remove('hidden');
+                    grandtotal.classList.add('hidden');
+                    grandtotal_label.classList.add('hidden');
+                } else {
+                    messageLabel.classList.add('hidden');
+                    grandtotal.classList.remove('hidden');
+                    grandtotal_label.classList.remove('hidden');
+                }
+            });
+    
+            updatePaymentOptions();  // Call on page load to set the correct state
+        });
+    </script>
+    
+{% endblock %}

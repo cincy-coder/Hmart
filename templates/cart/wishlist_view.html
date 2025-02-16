@@ -1,0 +1,114 @@
+{% extends 'main/base.html' %}
+{% load static %}
+
+
+{% block content %}
+<style>
+    .continue-shopping-btn {
+        display: inline-block;
+        padding: 10px 20px;
+        background-color: rgb(245, 245, 245); /* Light gray */
+        color: black;
+        text-decoration: none;
+        font-weight: bold;
+        border: 2px solid #ccc; /* Light border */
+        border-radius: 5px; /* Rounded corners */
+        transition: background-color 0.3s ease, border-color 0.3s ease;
+    }
+    
+    .continue-shopping-btn:hover {
+        background-color: rgb(230, 230, 230); /* Slightly darker gray */
+        border-color: #999;
+    }
+</style>
+
+{% if wishlist_items|length < 1 %}
+
+
+        <!-- Empty Cart area start -->
+        <div class="empty-cart-area pb-100px pt-100px">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="cart-heading">
+                            <h2>Your wishlist item</h2>
+                        </div>
+                        <div class="empty-text-contant text-center">
+                            <i class="pe-7s-shopbag"></i>
+                            <h3>There are no more items in your Wishlist</h3>
+                            <a class="empty-cart-btn" href="{% url 'product' %}">
+                                <i class="fa fa-arrow-left"> </i> Continue shopping
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Empty Cart area end -->
+
+
+
+{% else %}
+
+<!-- Wishlist Area Start -->
+<div class="cart-main-area pt-100px pb-100px">
+    <div class="container">
+        <h3 class="cart-page-title">Your cart items</h3>
+        <div class="row">
+            <div class="col-lg-12 col-md-12 col-sm-12 col-12">
+                <form action="#">
+                    <div class="table-content table-responsive cart-table-content">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Image</th>
+                                    <th>Product Name</th>
+                                    <th>Until Price</th>
+                                    <!--<th>Qty</th>
+                                    <th>Subtotal</th>-->
+                                    <th>Add To Cart</th>
+                                    <th>Remove</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in wishlist_items %}
+                                <tr>
+                                    <td class="product-thumbnail">
+                                        <a href="#"><img class="img-responsive ml-15px" src="{{item.product.image.url}}" alt="" /></a>
+                                    </td>
+                                    <td class="product-name"><a href="#">{{item.product.name | truncatewords:3}}</a></td>
+                                    <td class="product-price-cart"><span class="amount">{{item.product.price}}/-</span></td>
+                                    <!--<td class="product-quantity">
+                                        <div class="cart-plus-minus">
+                                            <input class="cart-plus-minus-box" type="text" name="qtybutton" value="1" />
+                                        </div>
+                                    </td>
+                                    <td class="product-subtotal">$70.00</td>-->
+                                    <td class="product-wishlist-cart">
+                                        <a href="{% url 'cart_add' item.product.id %}">add to cart</a>
+                                        
+                                    </td>
+                                    <td class="product-wishlist-cart">
+                                        
+                                        <a href="{% url 'wishlist_remove' item.product.id %}">remove</a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                            
+                        </table> 
+                        <br>
+                        <center> <div class="product-wishlist-cart">
+                            <a href="{% url 'product' %}" class="continue-shopping-btn"><strong>Continue Shopping</strong></a>
+                </div><center>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Wishlist Area End -->
+
+
+{% endif %}
+{% endblock %}

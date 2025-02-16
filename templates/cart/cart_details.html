@@ -1,0 +1,318 @@
+{% extends 'main/base.html' %}
+{% load static %}
+{% load cart_tag %}
+
+{% block content %}
+<style>
+  /* Quantity container styling */
+  .cart_quantity_button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: fit-content;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      overflow: hidden;
+  }
+  .cart-plus-minus-box {
+      width: 50px;
+      height: 30px;
+      text-align: center;
+      border: none;
+      font-size: 14px;
+      box-sizing: border-box;
+      outline: none;
+  }
+  .cart_btn {
+      width: 25px;
+      height: 30px;
+      background: none;
+      border: none;
+      font-size: 16px;
+      line-height: 1;
+      cursor: pointer;
+      text-align: center;
+      padding: 0;
+      margin: 0;
+  }
+  .cart_btn:focus {
+      outline: none;
+  }
+  .stock-info {
+      font-size: 12px;
+      color: #666;
+      margin-top: 5px;
+      display: block;
+  }
+  .stock-warning {
+      font-size: 12px;
+      color: red;
+      margin-top: 5px;
+      display: block;
+  }
+</style>
+
+{% if request.session.cart|length < 1 %}
+  <!-- Empty Cart area start -->
+  <div class="empty-cart-area pb-100px pt-100px">
+      <div class="container">
+          <div class="row">
+              <div class="col-md-12">
+                  <div class="cart-heading">
+                      <h2>Your cart item</h2>
+                  </div>
+                  <div class="empty-text-contant text-center">
+                      <i class="pe-7s-shopbag"></i>
+                      <h3>There are no more items in your cart</h3>
+                      <a class="empty-cart-btn" href="{% url 'product' %}">
+                          <i class="fa fa-arrow-left"></i> Continue shopping
+                      </a>
+                  </div>
+              </div>
+          </div>
+      </div>
+  </div>
+  <!-- Empty Cart area end -->
+{% else %}
+  <!-- Cart Area Start -->
+  <div class="cart-main-area pt-100px pb-100px">
+      <div class="container">
+          <h3 class="cart-page-title">Your cart items</h3>
+          <div class="row">
+              <div class="col-lg-12 col-md-12 col-sm-12 col-12">
+                  <form action="#">
+                      <div class="table-content table-responsive cart-table-content">
+                          <table>
+                              <thead>
+                                  <tr>
+                                      <th>Image</th>
+                                      <th>Product Name</th>
+                                      <th>Unit Price</th>
+                                      <th>Qty</th>
+                                      <th>Subtotal</th>
+                                      <th>Action</th>
+                                  </tr>
+                              </thead>
+                              <tbody>
+                                  {% for key, value in request.session.cart.items %}
+                                  <!-- Add a data attribute for product id -->
+                                  <tr data-product-id="{{ value.product_id }}">
+                                      <td class="product-thumbnail">
+                                          <a href="#"><img class="img-responsive ml-15px" src="{{ value.image }}" alt="" /></a>
+                                      </td>
+                                      <td class="product-name">
+                                          <a href="#">{{ value.name|truncatewords:3 }}</a>
+                                      </td>
+                                      <td class="product-price-cart">
+                                          <span class="amount">{{ value.price }}</span>
+                                      </td>
+                                      <td class="cart_quantity">
+                                          <div class="cart_quantity_button">
+                                              <!-- Instead of direct links, use buttons that will trigger AJAX calls -->
+                                              <button type="button" class="cart_btn cart_quantity_up"> + </button>
+                                              <input class="cart-plus-minus-box" type="text" name="qtybutton" value="{{ value.quantity }}" readonly />
+                                              <button type="button" class="cart_btn cart_quantity_down"> - </button>
+                                          </div>
+                                          <!-- Display available stock (you should pass this value from your view) -->
+                                          <span class="stock-info">
+                                              Available: <span class="available-stock">{{ value.available_stock }}</span>
+                                          </span>
+                                          <span class="stock-warning"></span>
+                                      </td>
+                                      <td class="product-subtotal">
+                                          {{ value.price|multiply:value.quantity }}
+                                      </td>
+                                      <td class="product-remove">
+                                          <a href="{% url 'item_clear' key %}"><i class="fa fa-times"></i></a>
+                                      </td>
+                                  </tr>
+                                  {% endfor %}
+                              </tbody>
+                          </table>
+                      </div>
+                      <!-- Additional cart actions (continue shopping, clear cart, etc.) -->
+                      <div class="row">
+                          <div class="col-lg-12">
+                              <div class="cart-shiping-update-wrapper">
+                                  <div class="cart-clear">
+                                      <a href="{% url 'product' %}">Continue Shopping</a>
+                                  </div>
+                                  <div class="cart-clear">
+                                      <a href="{% url 'cart_clear' %}">Clear Shopping Cart</a>
+                                  </div>
+                              
+                              </div>
+                          </div>
+                      </div>
+                  </form>
+                  
+
+
+                  <!-- Additional checkout or coupon code sections here -->
+              </div>
+              {% if not user.user_coupons.exists %}
+                            <div class="col-lg-4 col-md-6 mb-lm-30px">
+                                <div class="discount-code-wrapper">
+                                    <div class="title-wrap">
+                                        <h4 class="cart-bottom-title section-bg-gray">Welcome Bonus</h4>
+                                    </div>
+                                    <div class="discount-code">
+                                        
+                                        <p>Use Coupon Code: {{coupon_display.code}}</p>
+                                        <b>Discount: {{coupon_display.discount_amount}}% off</b>
+                                        <form method= "post" action="{% url 'add_user_coupon' %}">
+                                            {% csrf_token %}
+                                            <input type="text" required="" name="input_coupon" />
+                                            <button class="cart-btn-2" type="submit">Apply Coupon</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                            {% else %}
+                            <div class="col-lg-4 col-md-6 mb-lm-30px">
+                                <div class="discount-code-wrapper">
+                                    <div class="title-wrap">
+                                        <h4 class="cart-bottom-title section-bg-gray">Welcome Bonus Coupon</h4>
+                                        
+                                    </div>
+                                    <div class="discount-code">
+                                        <p>Coupon Used.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {% endif %}
+                            <div class="col-lg-4 col-md-12 mt-md-30px">
+                                <div class="grand-totall">
+                                    <div class="title-wrap">
+                                        <h4 class="cart-bottom-title section-bg-gary-cart">Cart Total</h4>
+                                    </div>
+                                    <h5>Total products <span>{{total_price}}/-</span></h5>
+                                    <div class="total-shipping">
+                                        <h5>Total</h5>
+                                        <ul>
+                                            <li> Shipping Charge:<span>1070/-</span></li>
+                                            <li> GST: <span>7% of Amt.</span></li> 
+                                            {% if not user.user_coupons.exists %}
+                                           <!--<li> Add Coupon: <span>{{coupon_display.discount_amount}}%</span></li>-->
+                                           <li> Coupon of {{coupon_display.discount_amount}}% added: <span>No</span></li>
+                                            {% endif %}
+                                        </ul>
+                                        <ul>
+                                        
+                                    <h4 class="grand-totall-title">Grand Total <span>{{ grand_total}}/-</span></h4>
+                                    
+                                    <a href="{% url 'address_list' %}">Proceed to Checkout</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Cart Area End -->
+
+
+          </div>
+
+
+          
+      </div>
+      
+  </div>
+  <!-- Cart Area End -->
+{% endif %}
+
+<!-- Real-Time Quantity & Stock Update JavaScript -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Retrieve CSRF token
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+    // Function to update the quantity on the server
+    function updateQuantityOnServer(productId, newQuantity, productRow) {
+        fetch('/cart/update_quantity/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken,
+            },
+            body: JSON.stringify({
+                product_id: productId,
+                quantity: newQuantity
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            // If update is successful, update the UI values
+            if (data.success) {
+                productRow.querySelector('.cart-plus-minus-box').value = data.new_quantity;
+                productRow.querySelector('.product-subtotal').textContent = data.subtotal + '/-';
+
+                // Update available stock if provided
+                const stockDisplay = productRow.querySelector('.available-stock');
+                if (stockDisplay && data.available_stock !== undefined) {
+                    stockDisplay.textContent = data.available_stock;
+                }
+                // Clear any previous warnings
+                const warningElem = productRow.querySelector('.stock-warning');
+                if (warningElem) {
+                    warningElem.textContent = '';
+                }
+            } else {
+                // Show error message if the update failed
+                const warningElem = productRow.querySelector('.stock-warning');
+                if (warningElem) {
+                    warningElem.textContent = data.message;
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            const warningElem = productRow.querySelector('.stock-warning');
+            if (warningElem) {
+                warningElem.textContent = 'Error updating quantity. Please try again.';
+            }
+        });
+    }
+
+    // Increase quantity handler
+    function increaseQuantity(event) {
+        event.preventDefault();
+        const productRow = event.target.closest("tr");
+        const input = productRow.querySelector(".cart-plus-minus-box");
+        const currentQuantity = parseInt(input.value, 10);
+        const newQuantity = currentQuantity + 1;
+        const productId = productRow.dataset.productId;
+        // Update UI immediately (optional)
+        input.value = newQuantity;
+        // Send the updated quantity to the server
+        updateQuantityOnServer(productId, newQuantity, productRow);
+    }
+
+    // Decrease quantity handler
+    function decreaseQuantity(event) {
+        event.preventDefault();
+        const productRow = event.target.closest("tr");
+        const input = productRow.querySelector(".cart-plus-minus-box");
+        const currentQuantity = parseInt(input.value, 10);
+        if (currentQuantity > 1) {
+            const newQuantity = currentQuantity - 1;
+            const productId = productRow.dataset.productId;
+            // Update UI immediately (optional)
+            input.value = newQuantity;
+            // Send the updated quantity to the server
+            updateQuantityOnServer(productId, newQuantity, productRow);
+        }
+    }
+
+    // Attach event listeners to the quantity buttons
+    document.querySelectorAll('.cart_quantity_up').forEach(button => {
+        button.addEventListener('click', increaseQuantity);
+    });
+    document.querySelectorAll('.cart_quantity_down').forEach(button => {
+        button.addEventListener('click', decreaseQuantity);
+    });
+});
+</script>
+{% endblock %}

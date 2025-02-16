@@ -1,0 +1,281 @@
+{% extends 'main/base.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+    body {
+        background-color: #f8f9fa; /* Light background */
+    }
+    
+    /* Custom styles for Profile Page */
+    .card {
+        background-color: #ffffff; /* White background for card */
+        border-radius: 8px; /* Rounded corners */
+    }
+    
+    .card-body p {
+        font-size: 16px;
+        color: #333; /* Dark text color */
+    }
+    
+    .card-body a {
+        text-decoration: none;
+    }
+    
+    .card-body a:hover {
+        text-decoration: underline;
+    }
+    
+    .text-primary {
+        color: #007bff !important; /* Blue text color for heading */
+    }
+    
+    .btn-primary {
+        background-color: #007bff;
+        border-color: #007bff;
+    }
+    
+    .btn-primary:hover {
+        background-color: #0056b3;
+        border-color: #0056b3;
+    }
+    
+    .btn-danger {
+        background-color: #dc3545;
+        border-color: #dc3545;
+    }
+    
+    .btn-danger:hover {
+        background-color: #a71d2a;
+        border-color: #a71d2a;
+    }
+    
+    /* Alert for no profile */
+    .alert-warning {
+        background-color:rgb(244, 245, 228);
+        color: #856404;
+    }
+
+</style>
+        <!-- account area start -->
+        <div class="account-dashboard pt-100px pb-100px">
+            <div class="container">
+                <div class="row">
+                    <div class="col-sm-12 col-md-3 col-lg-3">
+                        <!-- Nav tabs -->
+                        <div class="dashboard_tab_button" data-aos="fade-up" data-aos-delay="0">
+                            <ul role="tablist" class="nav flex-column dashboard-list">
+                                <li><a href="#dashboard" data-bs-toggle="tab" class="nav-link active">Profile</a></li>
+                                <li> <a href="#orders" data-bs-toggle="tab" class="nav-link">Your Orders</a></li>
+                                <!--<li><a href="#downloads" data-bs-toggle="tab" class="nav-link">Downloads</a></li>-->
+                                <li><a href="#address" data-bs-toggle="tab" class="nav-link">Addresses</a></li>
+                                <!--<li><a href="#account-details" data-bs-toggle="tab" class="nav-link">Account details</a></li>-->
+                                <li><a href="#wallet" data-bs-toggle="tab" class="nav-link">Your Wallet</a></li>
+                                <li><a href="#Change_password" data-bs-toggle="tab" class="nav-link">Change Password</a></li>
+                            </ul>
+                        </div>
+                    </div>
+
+
+                    <div class="col-sm-12 col-md-9 col-lg-9">
+                        <!-- Tab panes -->
+                        <div class="tab-content dashboard_content" data-aos="fade-up" data-aos-delay="200">
+                            <div class="tab-pane fade show active" id="dashboard">
+                                <h4>Profile </h4>                    
+                                        <div class="container mt-5">
+                                            <h1 class="text-center text-primary mb-4">Personal Details</h1>
+                                            
+                                            {% if profile %}
+                                                <div class="card shadow-sm p-4">
+                                                    <div class="card-body">
+                                                        <p><strong>Name:</strong> {{ user.first_name }} {{ user.last_name }}</p>
+                                                        <p><strong>Email:</strong> {{ user.email }}</p>
+                                                        
+                                                        <p><strong>Address:</strong> {{ profile.address }}</p>
+                                                        <p><strong>City:</strong> {{ profile.city }}</p>
+                                                        <p><strong>State:</strong> {{ profile.state }}</p>
+                                                        <p><strong>Postcode:</strong> {{ profile.postcode }}</p>
+                                                        <p><strong>Phone:</strong> {{ profile.phone }}</p>
+                                                        
+                                                        
+                                                        <div class="d-flex justify-content-between mt-4">
+                                                            <a href="{% url 'add_edit_profile' %}" class="btn btn-primary">Edit</a>
+                                                            <form method="POST" action="{% url 'delete_profile' %}">
+                                                                {% csrf_token %}
+                                                                <button type="submit" class="btn btn-danger">Delete</button>
+                                                            </form>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            {% else %}
+                                                <div class="alert alert-warning text-center" role="alert">
+                                                    No profile found. 
+                                                    <center><a href="{% url 'add_edit_profile' %}" class="btn btn-primary">Create one</a>.</center>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    
+                                    </div>
+
+
+
+
+
+
+                                    <div class="tab-pane fade" id="orders">
+                                        <h4>Orders</h4>
+                                        <div class="table_page table-responsive">
+                                            {% if not order %}
+                                                <p style="font-size: 18px; font-weight: bold; color: #666; text-align: center;">No results found</p>
+                                            {% else %}
+                                                <table>
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Order Image</th>
+                                                            <th>Date</th>
+                                                            <th>Status</th>
+                                                            <th>Total</th>
+                                                            <th>Action</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {% for i in order %}
+                                                        <tr>
+                                                            <!-- Order Image: Display the first item's image or a placeholder if no image -->
+                                                            <td>
+                                                                {% if i.order_item_set.first.image %}
+                                                                <img src="{{ i.order_item_set.first.image.url }}" alt="Product Image" style="width: 50px; height: 50px;">
+                                                                {% else %}
+                                                                <img src="{% static 'placeholder.jpg' %}" alt="No Image" style="width: 50px; height: 50px;">
+                                                                {% endif %}
+                                                            </td>
+                                                            
+                                                            <!-- Order Date -->
+                                                            <td>{{ i.date }}</td>
+                                                            
+                                                            <!-- Order Status -->
+                                                            <td>
+                                                                <span class="{% if i.status == 'Completed' %}success{% elif i.status == 'Processing' %}processing{% else %}pending{% endif %}">
+                                                                    {{ i.status }}
+                                                                </span>
+                                                            </td>
+                                                            
+                                                            <!-- Order Total -->
+                                                            <td>{{ i.amount }}</td>
+                                                            
+                                                            <!-- Action Buttons -->
+                                                            <td>
+                                                                {% if i.status == "Payment Failed" %}
+                                                                <a href="{% url 'payment_failed_order_details' i.id %}" class="Add to cart">Palace Order</a>
+                                                                {% else %}
+                                                                <a href="{% url 'order_details' i.id %}" class="view">View</a>
+                                                                {% endif %}
+                                                            </td>
+                                                        </tr>
+                                                        {% endfor %}
+                                                    </tbody>
+                                                </table>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+
+                                    <div class="tab-pane fade" id="wallet" style="padding: 20px; border: 1px solid #ddd; border-radius: 10px; background-color: #f9f9f9;">
+                                        <h4 style="color: #007bff; font-weight: bold; margin-bottom: 15px;">Wallet</h4>
+                                        <p style="font-size: 16px; color: #333;">
+                                            {% if wallet.balance < 0 %}
+                                            Your wallet balance: <strong style="color: #28a745;">0/-</strong>
+                                            {% else %}
+                                            Your wallet balance: <strong style="color: #28a745;">{{ wallet.balance }}/-</strong>
+                                            {% endif %}
+                                        </p>
+                                    </div>
+
+
+
+                                    <div class="tab-pane" id="address">
+                                        <h3>Shipping Address</h3>
+                                        <div style="text-align: center; margin-top: 20px;">
+                                            <a href="{% url 'add_address' %}" style="display: inline-block; padding: 15px 25px; font-size: 18px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);">
+                                                Add New Address
+                                            </a>
+                                            </div>
+                                        {% if addresses %}
+                                            <div class="row">
+                                                {% for address in addresses %}
+                                                    <div class="col-md-6 mb-4">
+                                                        <div class="card" style="border: 1px solid #ccc; border-radius: 5px; padding: 15px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);">
+                                                            <div class="card-body">
+                                                                <h5 class="card-title" style="color:#266BF9">{{ address.firstname }} {{ address.lastname }}</h5>
+                                                                <p class="card-text" style="margin: 5px 0;">
+                                                                    {{ address.address }}<br>
+                                                                    {{ address.city }}, {{ address.state }} - {{ address.postcode }}<br>
+                                                                    {{ address.country }}<br>
+                                                                    Phone: {{ address.phone }}<br>
+                                                                    Email: {{ address.email }}
+                                                                </p>
+                                                                <div style="display: flex; gap: 10px; margin-top: 10px;">
+                                                                    <a href="{% url 'edit_address' address.id %}" style="text-decoration: none; color: #266BF9;">Edit</a>
+                                                                    <form action="{% url 'delete_address' address.id %}" method="post" style="display: inline;">
+                                                                        {% csrf_token %}
+                                                                        <button type="submit" style="background: none; border: none; color: red; cursor: pointer;">Delete</button>
+                                                                    </form>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                {% endfor %}
+                                            </div>
+                                        {% else %}
+                                            <!-- No Address Found Message -->
+                                        
+
+                                        {% endif %}
+                                    </div>
+
+
+
+
+
+                            <div class="tab-pane fade" id="Change_password">
+                                <!--<h3>Account details </h3>-->
+                                
+                                <form action="{% url 'profile_change_password' %}" method="post" style="max-width: 400px; margin: 0 auto; padding: 20px; border: 1px solid #ccc; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); background-color: #f9f9f9;">
+                                    {% csrf_token %}
+                                    
+                                    <h3 style="text-align: center; color: #266BF9;">Change Password</h3>
+                                    
+                                    <input name="old_password" placeholder="Old Password" type="password" style="width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; font-size: 16px;">
+                                    <input type="password" name="pass1" placeholder="Password" style="width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; font-size: 16px;">
+                                    <input type="password" name="pass2" placeholder="Confirm Password" style="width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; font-size: 16px;">
+                                    
+                                    <div class="button-box" style="text-align: center; margin-top: 20px;">
+                                        <button type="submit" style="padding: 10px 20px; border: none; background-color: #266BF9; color: white; font-size: 16px; border-radius: 5px; cursor: pointer;">Register</button>
+                                    </div>
+                                </form>
+                                
+                                {% if messages %}
+                                    <div style="color: red; text-align: center; margin-top: 10px; font-size: 14px;">
+                                        {% for message in messages %}
+                                            <p>*{{ message }}!!!...</p>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                        
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+
+                            </div>
+
+
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- account area start -->
+{% endblock %}

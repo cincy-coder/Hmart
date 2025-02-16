@@ -1,0 +1,63 @@
+{% extends 'admin_temp/admin_base.html'%}
+
+{% load static %}
+
+{% block content %}
+{%if user.is_staff%}
+
+
+<!-- Tables Section -->
+<div class="row">
+    <!-- Orders Table -->
+    <div class="col-md-8">
+        <div class="card mb-4 shadow" style="transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)';">
+            <div class="card-header text-white" style="background-color: #266BF9;">
+                <h5 class="mb-0">Order List</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-hover">
+                    <thead class="thead-light">
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">Order ID</th>
+                            <th scope="col">Customer</th>
+                            <th scope="col">Status</th>
+                            <th scope="col">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in orders %}
+                        <tr>
+                            <th scope="row">{{ forloop.counter }}</th>
+                            <td>{{ order.payment_id }}</td>
+                            <td>{{ order.user.username }}</td>
+                            <td>
+                                {% if order.status == 'Packed' or order.status == 'Accepted' or order.status == 'Delivered' or order.status == 'Return Accepted'%}
+                                    <span class="badge bg-success">{{ order.status }}</span>
+                                {% elif order.status == 'Pending' or order.status == 'On the Way'%}
+                                    <span class="badge bg-warning">{{ order.status }}</span>
+                                {% elif order.status == 'Cancelled' or order.status == 'Return Requested' or order.status == 'Payment Failed' %}
+                                    <span class="badge bg-danger">{{ order.status }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'edit_order' order.id %}" style="text:center">
+                                    <i class="fas fa-edit"></i></a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+
+{% else %}
+<div class="container" style="max-width: 600px; margin: 50px auto; padding: 20px; background-color: #f8d7da; border: 1px solid #f5c6cb; border-radius: 8px; text-align: center;">
+    <h3 style="color: #721c24; font-size: 1.5rem; margin-bottom: 10px;">Access Denied</h3>
+    <p style="color: #856404; font-size: 1rem;">You do not have permission to view this page.</p>
+</div>
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="zxx" dir="ltr">
+
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hmart – Electronics eCommerce HTML Template</title>
+    <meta name="robots" content="index, follow" />
+    <meta name="description" content="Hmart-Smart Product eCommerce html Template">
+    <!-- Favicon -->
+    <link rel="shortcut icon" type="image/x-icon" href="{% static 'assets/images/favicon.ico'%}" />
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    
+    <!-- CSS
+    ============================================ -->
+    <link rel="stylesheet" href="{% static 'assets/css/bootstrap.min.css'%}" />
+    <link rel="stylesheet" href="{% static 'assets/css/font.awesome.css'%}" />
+    <link rel="stylesheet" href="{% static 'assets/css/pe-icon-7-stroke.css'%}" />
+    <link rel="stylesheet" href="{% static 'assets/css/animate.min.css'%}">
+    <link rel="stylesheet" href="{% static 'assets/css/swiper-bundle.min.css'%}">
+    <link rel="stylesheet" href="{% static 'assets/css/venobox.css'%}">
+    <link rel="stylesheet" href="{% static 'assets/css/jquery-ui.min.css'%}"> 
+    <!-- Style CSS -->
+    <link rel="stylesheet" href="{% static 'style.css'%}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+
+    <!-- Minify Version -->
+    <link rel="stylesheet" href="{% static 'assets/css/plugins.min.css'%}">
+    <link rel="stylesheet" href="{% static 'assets/css/style.min.css'%}">
+</head>
+    <body>
+        <div class="main-wrapper">
+            <header>
+                <!-- Header top area start -->
+                <div class="header-top">
+                    <div class="container">
+                        <div class="row justify-content-between align-items-center">
+                            <div class="col">
+                                <br>
+                                
+                               <div class="welcome-text">
+                              
+                                <div class="header-logo">
+                                    <h1 style = "color:#266BF9" >Hmart- AdminHub</h1>
+                                </div>
+                            </div>
+                            <div class="col d-none d-lg-block">
+                                <div class="top-nav">
+                                    <ul>
+                                        <!--<li><a href="tel:0123456789"><i class="fa fa-phone"></i> +012 3456 789</a></li>
+                                        <li><a href="mailto:demo@example.com"><i class="fa fa-envelope-o"></i> mstore@qmail.com</a></li>-->
+                                        {% if user.is_authenticated %}
+                                        <li><a href="my-account.html"><i class="fa fa-user"></i>{{user}}</a></li>
+                                        <li><a href="{% url 'logout' %}"><i class="fa-solid fa-unlock"></i>Logout</a></li>
+                                        {% else %}
+                                        <li><a href="{% url 'login' %}"><i class="fa-solid fa-lock"></i>Login</a></li>
+                                        {% endif %}
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Header top area end -->
+                <!-- Header action area start -->
+                <div class="header-bottom  d-none d-lg-block">
+                    <div class="container">
+                        <div class="row justify-content-between align-items-center">
+                            <div class="col-lg-3 col">
+                                <div class="header-logo">
+                                   <!--<a href="index.html"><img src="{% static 'assets/images/logo/logo.png' %}" alt="Site Logo" /></a>--> 
+
+                                </div>
+                            </div>
+                            <div style="center"class="col-lg-6 d-none d-lg-block">
+                                <div  class="search-element">
+                                    <form action="search" method='text'>
+                                        <input type="text" placeholder="Search" name='query' id="query"/>
+                                        <button><i class="pe-7s-search"></i></button>
+                                    </form>
+                                </div>
+                            </div>
+                            
+                         
+                        </div>
+                    </div>
+                </div>
+                <!-- Header action area end -->
+                <!-- Header action area start -->
+                <div class="header-bottom d-lg-none sticky-nav style-1">
+                    <div class="container">
+                        <div class="row justify-content-between align-items-center">
+                            <div class="col-lg-3 col">
+                                <div class="header-logo">
+                                    <!--<a href="index.html"><img src="{% static 'assets/images/logo/logo.png' %}" alt="Site Logo" /></a>-->
+                                    
+                                </div>
+                            </div>
+                            <div class="col-lg-6 d-none d-lg-block">
+                                <div class="search-element">
+                                    <form action="#">
+                                        <input type="text" placeholder="Search" />
+                                        <button><i class="pe-7s-search"></i></button>
+                                    </form>
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col">
+                                <div class="header-actions">
+                                    <!-- Single Wedge Start -->
+                                    <a href="#offcanvas-wishlist" class="header-action-btn offcanvas-toggle">
+                                        <i class="pe-7s-like"></i>
+                                    </a>
+                                    <!-- Single Wedge End -->
+                                    <a href="#offcanvas-cart" class="header-action-btn header-action-btn-cart offcanvas-toggle pr-0">
+                                        <i class="pe-7s-shopbag"></i>
+                                        <span class="header-action-num">01</span>
+                                        <!-- <span class="cart-amount">€30.00</span> -->
+                                    </a>
+                                    <a href="#offcanvas-mobile-menu" class="header-action-btn header-action-btn-menu offcanvas-toggle d-lg-none">
+                                        <i class="pe-7s-menu"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Header action area end -->
+                <!-- header navigation area start -->
+                <div class="header-nav-area d-none d-lg-block sticky-nav">
+                    <div class="container">
+                        <div class="header-nav">
+                            <div class="main-menu position-relative">
+                                <ul>
+                                    <li class="dropdown"><a href="{% url 'admin_home'%}">Dashboard <!--<i class="fa fa-angle-down"></i>---></a>
+                                      <!-- <ul class="sub-menu">
+                                            <li><a href="index.html">Home 1</a></li>
+                                            <li><a href="index-2.html">Home 2</a></li>
+                                        </ul>--> 
+                                    </li>
+                                    <li><a href="{% url 'sales_report'%}">Orders</a></li>
+                                    <li><a href="{% url 'sales_report'%}">Reports</a></li>
+                                    <!--
+                                    <li class="dropdown position-static"><a href="about.html">Pages <i class="fa fa-angle-down"></i></a>
+                                        <ul class="mega-menu d-block">
+                                            <li class="d-flex">
+                                                <ul class="d-block">
+                                                    <li class="title"><a href="#">Inner Pages</a></li>
+                                                    <li><a href="404.html">404 Page</a></li>
+                                                    <li><a href="order-tracking.html">Order Tracking</a></li>
+                                                    <li><a href="faq.html">Faq Page</a></li>
+                                                    <li><a href="coming-soon.html">Coming Soon Page</a></li>
+                                                </ul>
+                                                <ul class="d-block">
+                                                    <li class="title"><a href="#">Other Shop Pages</a></li>
+                                                    <li><a href="cart.html">Cart Page</a></li>
+                                                    <li><a href="checkout.html">Checkout Page</a></li>
+                                                    <li><a href="compare.html">Compare Page</a></li>
+                                                    <li><a href="wishlist.html">Wishlist Page</a></li>
+                                                </ul>
+                                                <ul class="d-block">
+                                                    <li class="title"><a href="#">Related Shop Pages</a></li>
+                                                    <li><a href="my-account.html">Account Page</a></li>
+                                                    <li><a href="login.html">Login & Register Page</a></li>
+                                                    <li><a href="empty-cart.html">Empty Cart Page</a></li>
+                                                    <li><a href="thank-you-page.html">Thank You Page</a></li>
+                                                </ul>
+                                                <ul class="d-flex align-items-center p-0 border-0 flex-column justify-content-center">
+                                                    <li>
+                                                        <a class="p-0" href="shop-left-sidebar.html"><img class="img-responsive w-100" src="{% static 'assets/images/banner/menu-banner.png'%}" alt=""></a>
+                                                    </li>
+                                                </ul>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                    -->
+                                    <li class="dropdown position-static"><a href="{% url 'product_list'%}">Products<!--<i
+                                        class="fa fa-angle-down"></i>--></a>
+                                        <!--<ul class="mega-menu d-block">
+                                            <li class="d-flex">
+                                                <ul class="d-block">
+                                                    <li class="title"><a href="#">Shop Page</a></li>
+                                                    <li><a href="shop-3-column.html">Shop 3 Column</a></li>
+                                                    <li><a href="shop-4-column.html">Shop 4 Column</a></li>
+                                                    <li><a href="shop-left-sidebar.html">Shop Left Sidebar</a></li>
+                                                    <li><a href="shop-right-sidebar.html">Shop Right Sidebar</a></li>
+                                                    <li><a href="shop-list-left-sidebar.html">Shop List Left Sidebar</a>
+                                                    </li>
+                                                    <li><a href="shop-list-right-sidebar.html">Shop List Right Sidebar</a>
+                                                    </li>
+                                                </ul>
+                                                <ul class="d-block">
+                                                    <li class="title"><a href="#">product Details Page</a></li>
+                                                    <li><a href="single-product.html">Product Single</a></li>
+                                                    <li><a href="single-product-variable.html">Product Variable</a></li>
+                                                    <li><a href="single-product-affiliate.html">Product Affiliate</a></li>
+                                                    <li><a href="single-product-group.html">Product Group</a></li>
+                                                    <li><a href="single-product-tabstyle-2.html">Product Tab 2</a></li>
+                                                    <li><a href="single-product-tabstyle-3.html">Product Tab 3</a></li>
+                                                </ul>
+                                                <ul class="d-block">
+                                                    <li class="title"><a href="#">Single Product Page</a></li>
+                                                    <li><a href="single-product-slider.html">Product Slider</a></li>
+                                                    <li><a href="single-product-gallery-left.html">Product Gallery Left</a>
+                                                    <li><a href="single-product-gallery-right.html">Product Gallery Right</a> </li>
+                                                    <li><a href="single-product-sticky-left.html">Product Sticky Left</a>
+                                                    </li>
+                                                    <li><a href="single-product-sticky-right.html">Product Sticky Right</a>
+                                                    </li>
+                                                    <li><a href="cart.html">Cart Page</a></li>
+                                                </ul>
+                                                <ul class="d-block p-0 border-0">
+                                                    <li class="title"><a href="#">Single Product Page</a></li>
+                                                    <li><a href="checkout.html">Checkout Page</a></li>
+                                                    <li><a href="compare.html">Compare Page</a></li>
+                                                    <li><a href="wishlist.html">Wishlist Page</a></li>
+                                                    <li><a href="my-account.html">Account Page</a></li>
+                                                    <li><a href="login.html">Login & Register Page</a></li>
+                                                    <li><a href="empty-cart.html">Empty Cart Page</a></li>
+                                                </ul>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                -->
+                                    <li class="dropdown "><a href="{% url 'user_list' %}">User <!--<i class="fa fa-angle-down"></i>--></a>
+                                        <!--<ul class="sub-menu">
+                                            <li class="dropdown position-static"><a href="blog-grid-left-sidebar.html">Blog Grid
+                                                    <i class="fa fa-angle-right"></i></a>
+                                                <ul class="sub-menu sub-menu-2">
+                                                    <li><a href="blog-grid.html">Blog Grid</a></li>
+                                                    <li><a href="blog-grid-left-sidebar.html">Blog Grid Left Sidebar</a></li>
+                                                    <li><a href="blog-grid-right-sidebar.html">Blog Grid Right Sidebar</a></li>
+                                                </ul>
+                                            </li>
+                                            <li class="dropdown position-static"><a href="blog-list-left-sidebar.html">Blog List
+                                                    <i class="fa fa-angle-right"></i></a>
+                                                <ul class="sub-menu sub-menu-2">
+                                                    <li><a href="blog-list.html">Blog List</a></li>
+                                                    <li><a href="blog-list-left-sidebar.html">Blog List Left Sidebar</a></li>
+                                                    <li><a href="blog-list-right-sidebar.html">Blog List Right Sidebar</a></li>
+                                                </ul>
+                                            </li>
+                                            <li class="dropdown position-static"><a href="blog-single-left-sidebar.html">Single
+                                                    Blog <i class="fa fa-angle-right"></i></a>
+                                                <ul class="sub-menu sub-menu-2">
+                                                    <li><a href="blog-single.html">Single Blog</a>
+                                                    <li><a href="blog-single-left-sidebar.html">Single Blog Left Sidebar</a>
+                                                    </li>
+                                                    <li><a href="blog-single-right-sidebar.html">Single Blog Right Sidebar</a>
+                                                    </li>
+                                                </ul>
+                                            </li>
+                                        </ul>
+                                    </li>-->
+                                
+                                    <li><a href="{% url 'inventory'%}">Inventory</a></li>
+                                    <li><a href="{% url 'contact_us_list' %}">MAils</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- header navigation area end -->
+                <div class="mobile-search-box d-lg-none">
+                    <div class="container">
+                        <!-- mobile search start -->
+                        <div class="search-element max-width-100">
+                            <form action="#">
+                                <input type="text" placeholder="Search" />
+                                <button><i class="pe-7s-search"></i></button>
+                            </form>
+                        </div>
+                        <!-- mobile search start -->
+                    </div>
+                </div>
+            </header>
+
+
+
+
+
+
+
+	<!-- SIDEBAR -->
+	<!--<section id="sidebar">
+		<a href="#" class="brand">
+			<i class='bx bxs-smile'></i>
+			<span class="text">AdminHub</span>
+		</a>
+		<ul class="side-menu top">
+			<li class="active">
+				<a href="#">
+					<i class='bx fa-solid fa-palette' ></i>
+                    
+					<span class="text">Dashboard</span>
+				</a>
+			</li>
+			<li>
+				<a href="#">
+					<i class='bx bxs-shopping-bag-alt' ></i>
+					<span class="text">My Store</span>
+				</a>
+			</li>
+			<li>
+				<a href="#">
+					<i class='bx bxs-doughnut-chart' ></i>
+					<span class="text">Analytics</span>
+				</a>
+			</li>
+			<li>
+				<a href="#">
+					<i class='bx bxs-message-dots' ></i>
+					<span class="text">Message</span>
+				</a>
+			</li>
+			<li>
+				<a href="#">
+					<i class='bx bxs-group' ></i>
+					<span class="text">Team</span>
+				</a>
+			</li>
+		</ul>
+		<ul class="side-menu">
+			<li>
+				<a href="#">
+					<i class='bx bxs-cog' ></i>
+					<span class="text">Settings</span>
+				</a>
+			</li>
+			<li>
+				<a href="#" class="logout">
+					<i class='bx bxs-log-out-circle' ></i>
+					<span class="text">Logout</span>
+				</a>
+			</li>
+		</ul>
+	</section>-->
+	<!-- SIDEBAR -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            <!-- offcanvas overlay start -->
+            <div class="offcanvas-overlay"></div>
+            <!-- offcanvas overlay end -->
+            <!-- OffCanvas Wishlist Start -->
+            <div id="offcanvas-wishlist" class="offcanvas offcanvas-wishlist">
+                <div class="inner">
+                    <div class="head">
+                        <span class="title">Wishlist</span>
+                        <button class="offcanvas-close">×</button>
+                    </div>
+                    <div class="body customScroll">
+                        <ul class="minicart-product-list">
+                            <li>
+                                <a href="single-product.html" class="image"><img src="{% static 'assets/images/product-image/1.webp'%}" alt="Cart product Image"></a>
+                                <div class="content">
+                                    <a href="single-product.html" class="title">Modern Smart Phone</a>
+                                    <span class="quantity-price">1 x <span class="amount">$21.86</span></span>
+                                    <a href="#" class="remove">×</a>
+                                </div>
+                            </li>
+                            <li>
+                                <a href="single-product.html" class="image"><img src="{% static 'assets/images/product-image/2.webp'%}" alt="Cart product Image"></a>
+                                <div class="content">
+                                    <a href="single-product.html" class="title">Bluetooth Headphone</a>
+                                    <span class="quantity-price">1 x <span class="amount">$13.28</span></span>
+                                    <a href="#" class="remove">×</a>
+                                </div>
+                            </li>
+                            <li>
+                                <a href="single-product.html" class="image"><img src="{% static 'assets/images/product-image/3.webp'%}" alt="Cart product Image"></a>
+                                <div class="content">
+                                    <a href="single-product.html" class="title">Smart Music Box</a>
+                                    <span class="quantity-price">1 x <span class="amount">$17.34</span></span>
+                                    <a href="#" class="remove">×</a>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="foot">
+                        <div class="buttons">
+                            <a href="wishlist.html" class="btn btn-dark btn-hover-primary mt-30px">view wishlist</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+    
+
+
+
+
+
+        {% block content %}    {% endblock %}
+
+
+
+
+
+       
+         <!-- Footer Area Start -->
+         <div class="footer-area">
+            <div class="footer-container">
+               
+                <div class="footer-bottom">
+                    <div class="container">
+                        <div class="line-shape-top line-height-1">
+                            <div class="row flex-md-row-reverse align-items-center">
+                                <div class="col-md-6 text-center text-md-end">
+                                    <!--<div class="payment-mth"><a href="#"><img class="img img-fluid" src="{% static 'assets/images/icons/payment.png' %}" alt="payment-image"></a></div>
+                                    -->
+                                    
+                                </div>
+                                <div class="col-md-6 text-center text-md-start">
+                                    <p class="copy-text" style="center"> © 2025 <strong>Hmart</strong> Made By <a>
+                                        <strong> Cincy Mary Sebastian </strong></a>.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Footer Area End -->
+
+
+
+        
+    </div>
+    <!-- Modal -->
+
+    {% for i in product %}
+    <div class="modal modal-2 fade" id="exampleModal-{{forloop.counter}}" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"> <i class="pe-7s-close"></i></button>
+                    <div class="row">
+                        <div class="col-lg-6 col-sm-12 col-xs-12 mb-lm-30px mb-md-30px mb-sm-30px">
+                            <!-- Swiper -->
+                            <div class="swiper-container gallery-top">
+                                <div class="swiper-wrapper">
+                                    {% for img in i.images_set.all %}
+                                    <div class="swiper-slide">
+                                        <img class="img-responsive m-auto" src="{{img.image}}" alt="">
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <div class="swiper-container gallery-thumbs mt-20px slider-nav-style-1 small-nav">
+                                <div class="swiper-wrapper">
+                                    {% for img in i.images_set.all %}
+                                    <div class="swiper-slide">
+                                        
+                                        <img class="img-responsive m-auto" src="{{img.image}}" alt="">
+                                        
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                <!-- Add Arrows -->
+                                <div class="swiper-buttons">
+                                    <div class="swiper-button-next"></div>
+                                    <div class="swiper-button-prev"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-6 col-sm-12 col-xs-12" data-aos="fade-up" data-aos-delay="200">
+                            <div class="product-details-content quickview-content">
+                                <h2>{{i.name | truncatewords:3}}</h2>
+                                <div class="pricing-meta">
+                                    <ul class="d-flex">
+                                        <li class="new-price">{{i.price}}/-</li>
+                                    </ul>
+                                </div>
+                                <div class="pro-details-rating-wrap">
+                                    <div class="rating-product">
+                                        <i class="fa fa-star"></i>
+                                        <i class="fa fa-star"></i>
+                                        <i class="fa fa-star"></i>
+                                        <i class="fa fa-star"></i>
+                                        <i class="fa fa-star"></i>
+                                    </div>
+                                    <span class="read-review"><a class="reviews" href="#">( 2 Review )</a></span>
+                                </div>
+                                <p class="mt-30px">{{i.description | truncatewords:25}}</p>
+                                <div class="pro-details-categories-info pro-details-same-style d-flex m-0">
+                                    <span>F_UID:</span>
+                                    <ul class="d-flex">
+                                        <li>
+                                            <a href="#">{{i.unique_id}}</a>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <div class="pro-details-categories-info pro-details-same-style d-flex m-0">
+                                    <span>Categories: </span>
+                                    <ul class="d-flex">
+                                        <li>
+                                            <a href="#">{{i.categories}}</a>
+                                        </li>
+
+                                    </ul>
+                                </div>
+                                <div class="pro-details-categories-info pro-details-same-style d-flex m-0">
+                                    <span>Tags: </span>
+                                    <ul class="d-flex">
+                                        <li>
+                                            {% for tag in i.tag_set.all%}
+                                            <a href="#">{{tag.name}} </a>
+                                            {% endfor %}
+                                        </li>
+                                        
+                                    </ul>
+                                </div>
+                                <div class="pro-details-quality">
+                                    <div class="cart-plus-minus">
+                                        <input class="cart-plus-minus-box" type="text" name="qtybutton" value="1" />
+                                    </div>
+                                    <div class="pro-details-cart">
+                                        <button class="add-cart"> Add To
+                                            Cart</button>
+                                    </div>
+                                    <div class="pro-details-compare-wishlist pro-details-wishlist ">
+                                        <a href="wishlist.html"><i class="pe-7s-like"></i></a>
+                                    </div>
+                                </div>
+                                <div class="payment-img">
+                                    <a href="#"><img src="assets/images/icons/payment.png" alt=""></a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% endfor %}
+    <!-- Modal end -->
+    <!-- Modal Cart -->
+    <div class="modal customize-class fade" id="exampleModal-Cart" tabindex="-1"   aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-body text-center">
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"><i class="pe-7s-close"></i></button>
+                    <div class="tt-modal-messages">
+                        <i class="pe-7s-check"></i> Added to cart successfully!
+                    </div>
+                    <div class="tt-modal-product">
+                        <div class="tt-img">
+                            <img src="assets/images/product-image/1.webp" alt="Modern Smart Phone">
+                        </div>
+                        <h2 class="tt-title"><a href="#">Modern Smart Phone</a></h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>     
+    <!-- Modal wishlist -->
+    <div class="modal customize-class fade" id="exampleModal-Wishlist" tabindex="-1"   aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-body text-center">
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"><i class="pe-7s-close"></i></button>
+                    <div class="tt-modal-messages">
+                        <i class="pe-7s-check"></i> Added to Wishlist successfully!
+                    </div>
+                    <div class="tt-modal-product">
+                        <div class="tt-img">
+                            <img src="{% static 'assets/images/product-image/1.webp' %}" alt="Modern Smart Phone">
+                        </div>
+                        <h2 class="tt-title"><a href="#">Modern Smart Phone</a></h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>    
+    <!-- Modal compare -->
+    <div class="modal customize-class fade" id="exampleModal-Compare" tabindex="-1"   aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-body text-center">
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"><i class="pe-7s-close"></i></button>
+                    <div class="tt-modal-messages">
+                        <i class="pe-7s-check"></i> Added to compare successfully!
+                    </div>
+                    <div class="tt-modal-product">
+                        <div class="tt-img">
+                            <img src="{% static 'assets/images/product-image/1.webp'%}" alt="Modern Smart Phone">
+                        </div>
+                        <h2 class="tt-title"><a href="#">Modern Smart Phone</a></h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+<!-- Blog area end here -->
+ <!-- Global Vendor, plugins JS -->
+    <!-- JS Files
+    ============================================ -->
+<script src="{% static 'assets/js/vendor/bootstrap.bundle.min.js'%}"></script>
+    <script src="{% static 'assets/js/vendor/jquery-3.6.0.min.js'%}"></script>
+    <script src="{% static 'assets/js/vendor/jquery-migrate-3.3.2.min.js'%}"></script>
+    <script src="{% static 'assets/js/vendor/modernizr-3.11.2.min.js'%}"></script>
+    <script src="{% static 'assets/js/plugins/jquery.countdown.min.js'%}"></script>
+    <script src="{% static 'assets/js/plugins/swiper-bundle.min.js'%}"></script>
+    <script src="{% static 'assets/js/plugins/scrollUp.js'%}"></script>
+    <script src="{% static 'assets/js/plugins/venobox.min.js'%}"></script>
+    <script src="{% static 'assets/js/plugins/jquery-ui.min.js'%}"></script>
+    <script src="{% static 'assets/js/plugins/mailchimp-ajax.js'%}"></script> 
+
+    <!-- Minify Version -->
+    <script src="{% static 'assets/js/vendor.min.js'%}"></script>
+    <script src="{% static 'assets/js/plugins.min.js'%}"></script>
+    <script src="{% static 'assets/js/main.min.js'%}"></script>
+    <script src="{% static 'script.js'%}"></script>
+    <script src="script.js"></script>
+
+
+    <!--Main JS (Common Activation Codes)-->
+    <script src="{% static 'assets/js/main.js'%}"></script>
+</body>
+
+
+
+</html>

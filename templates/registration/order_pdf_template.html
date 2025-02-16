@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Invoice</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        .order-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        h2, h3 {
+            text-align: center;
+            color: #333;
+        }
+        .order-summary, .order-items {
+            margin-bottom: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            background: #fafafa;
+        }
+        .total {
+            font-size: 18px;
+            font-weight: bold;
+            color: #e63946;
+            text-align: right;
+            margin-top: 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        table th, table td {
+            padding: 12px;
+            border: 1px solid #ddd;
+            text-align: center;
+        }
+        table th {
+            background-color: #f1f1f1;
+        }
+        img {
+            max-width: 80px;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        address {
+            font-style: normal;
+            line-height: 1.6;
+            text-align: left;
+            padding: 10px;
+            background: #f9f9f9;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="order-container">
+        <h2>Hmart Order Invoice</h2>
+        <h3>Email: hmart@123.com | Phone: {{ order.address.phone }}</h3>
+        <div class="order-summary">
+            <p><strong>Order ID:</strong> {{ order.id }}</p>
+            <p><strong>Order Date:</strong> {{ order.date }}</p>
+            <p><strong>Order Status:</strong> {{ order.status }}</p>
+            <p><strong>Payment Mode:</strong> {{ order.payment_mode }}</p>
+            <p><strong>Paid:</strong> {{ order.paid|yesno:"Yes,No" }}</p>
+            <p><strong>Shipping Address:</strong></p>
+            <address>
+                {{ order.address.firstname }} {{ order.address.lastname }}<br>
+                {{ order.address.address }}<br>
+                {{ order.address.city }}, {{ order.address.state }} - {{ order.address.postcode }}<br>
+                {{ order.address.country }}<br>
+                Email: {{ order.address.email }}
+            </address>
+        </div>
+        
+        <div class="order-items">
+            <h3>Order Items</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <!--<th>Image</th>-->
+                        <th>Quantity</th>
+                        <th>Price</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in order_items %}
+                    <tr>
+                        <td>{{ item.product }}</td>
+                     <!-- <td>
+                            {% if item.image %}
+                            <img src="{{ item.image.url }}" alt="{{ item.product }}">
+                            {% else %}
+                            <img src="https://via.placeholder.com/80" alt="No Image Available">
+                            {% endif %}
+                        </td>-->
+                        <td>{{ item.quantity }}</td>
+                        <td>{{ item.price|floatformat:2 }}/-</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <p class="total">Order Total: {{ order.amount|floatformat:2 }}/-</p>
+        </div>
+    </div>
+</body>
+</html>
