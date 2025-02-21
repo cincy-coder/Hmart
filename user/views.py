@@ -20,6 +20,7 @@ from django.template.loader import render_to_string
 from xhtml2pdf import pisa
 from django.template.loader import get_template
 from .models import *
+from django.db import IntegrityError
 from .forms import ProfileForm
 from allauth.socialaccount.models import SocialAccount
 from django.contrib import messages
@@ -31,7 +32,7 @@ from django.contrib.auth import get_user_model
 import datetime
 from datetime import datetime
 from django.contrib.sessions.models import Session
-
+from django.db import transaction
 
 # Create your views here.
 def BASE(request):
@@ -165,6 +166,7 @@ def ADMIN_HOME(request):
 def HandleRegister(request):
     if request.user.is_authenticated:
         return redirect('home')
+    
     if request.method == 'POST':
         username = request.POST.get('username')
         first_name = request.POST.get('first_name')
@@ -172,36 +174,50 @@ def HandleRegister(request):
         email = request.POST.get('email')
         pass1 = request.POST.get('pass1')
         pass2 = request.POST.get('pass2')
-        
+
         # Check for duplicate username
         if User.objects.filter(username=username).exists():
             messages.error(request, 'Username already exists.')
             return redirect('register')
+        
         # Check for duplicate email   
         elif User.objects.filter(email=email).exists():
             messages.error(request, 'Email is already registered.')
+            return redirect('register')
 
         # Check if passwords match
         elif pass1 != pass2:
             messages.error(request, 'Passwords do not match.')
             return redirect('register')
+        
         else:
-        # Create and save the user
-            user = User.objects.create_user(
-            email=email,
-            username=username,
-            password=pass1,
-            first_name=first_name,
-            last_name=last_name
-        )
-        user.save()
-        wallet=Wallet.objects.create(
-            user=user,
-            balance=0
-        )
-        wallet.save()
-        messages.success(request, 'Registration successful! You can now log in.')
-        return redirect('login')  # Redirect to the login page after successful registration
+            try:
+                # Create and save the user
+                user = User.objects.create_user(
+                    email=email,
+                    username=username,
+                    password=pass1,
+                    first_name=first_name,
+                    last_name=last_name
+                )
+                user.save()
+
+                # Create the wallet for the new user
+                wallet = Wallet.objects.create(
+                    user=user,
+                    balance=0
+                )
+                wallet.save()
+
+                messages.success(request, 'Registration successful! You can now log in.')
+                return redirect('login')  # Redirect to the login page after successful registration
+            
+            except IntegrityError as e:
+                # Handle any potential IntegrityError (e.g., duplicate wallet creation)
+                messages.error(request, 'Error occurred while creating wallet. Please try again.')
+                print(f"IntegrityError: {e}")
+                return redirect('register')
+
     return render(request, 'registration/auth.html')
 
 
@@ -209,11 +225,18 @@ User = get_user_model()
 
 @receiver(post_save, sender=User)
 def create_user_wallet(sender, instance, created, **kwargs):
-    print("------------------------Wallet creation------------------------------")
     if created:
-        wallet=Wallet.objects.create(user=instance,balance=0)
-        wallet.save()
-        print(wallet)
+        print("------------------------Wallet creation------------------------------")
+        try:
+            # Using get_or_create ensures that a wallet is created only once for a user
+            wallet, created = Wallet.objects.get_or_create(user=instance, defaults={'balance': 0})
+            
+            if not created:
+                print(f"Wallet already exists for user {instance.username}")
+
+        except IntegrityError as e:
+            # Handle any potential IntegrityError (e.g., duplicate wallet creation)
+            print(f"IntegrityError occurred while creating wallet for user {instance.username}: {e}")
 
 
 def HandleLogin(request):
