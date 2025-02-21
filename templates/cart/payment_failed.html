@@ -1,0 +1,58 @@
+
+    
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 100px auto;
+            text-align: center;
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #e74c3c;
+            font-size: 36px;
+            margin-bottom: 20px;
+        }
+        p {
+            color: #555;
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+        .btn {
+            display: inline-block;
+            background-color: #007bff;
+            color: #fff;
+            padding: 10px 20px;
+            font-size: 16px;
+            text-decoration: none;
+            border-radius: 4px;
+            margin-top: 20px;
+        }
+        .btn:hover {
+            background-color: #0056b3;
+        }
+        .error-icon {
+            font-size: 80px;
+            color: #e74c3c;
+            margin-bottom: 20px;
+        }
+    </style>
+
+
+    <div class="container">
+        <div class="error-icon">✖</div>
+        <h1>Payment Failed</h1>
+        <p>We were unable to process your payment. Please try again.</p>
+        <p>If the issue persists, contact our support team for assistance.</p>
+        <a href="{% url 'address_list' %}" class="btn">Checkout Later</a>
+        <a href="{% url 'contact' %}" class="btn" style="background-color: #28a745;">Contact Support</a>
+    </div>
+

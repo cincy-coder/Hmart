@@ -1,0 +1,278 @@
+{% extends 'admin_temp/admin_base.html'%}
+{% load static %}
+
+{% block content %}
+{% if user.is_staff %}
+
+<div class="page-wrapper">
+    <div class="container-fluid">
+        <div class="row justify-content-center align-items-center min-vh-100">
+            <div class="col-md-8 col-lg-7 col-xl-6"> <!-- Reduced column widths -->
+                <div class="card dashboard-card">
+                    <div class="card-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="fas fa-shopping-cart me-2"></i>Order List
+                            </h5>
+                            <span class="order-count">{{ orders|length }} Orders</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover custom-table">
+                                <thead>
+                                    <tr>
+                                        <th scope="col" width="5%">#</th>
+                                        <th scope="col" width="25%">Order ID</th>
+                                        <th scope="col" width="30%">Customer</th>
+                                        <th scope="col" width="25%">Status</th>
+                                        <th scope="col" width="15%">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for order in orders %}
+                                    <tr class="align-middle">
+                                        <th scope="row">{{ forloop.counter }}</th>
+                                        <td>
+                                            <span class="order-id">{{ order.payment_id }}</span>
+                                        </td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="avatar-circle">
+                                                    {{ order.user.username|make_list|first|upper }}
+                                                </div>
+                                                <span class="ms-2">{{ order.user.username }}</span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            {% if order.status == 'Packed' or order.status == 'Accepted' or order.status == 'Delivered' or order.status == 'Return Accepted'%}
+                                                <span class="status-badge success">
+                                                    <i class="fas fa-check-circle me-1"></i>{{ order.status }}
+                                                </span>
+                                            {% elif order.status == 'Pending' or order.status == 'On the Way'%}
+                                                <span class="status-badge warning">
+                                                    <i class="fas fa-clock me-1"></i>{{ order.status }}
+                                                </span>
+                                            {% elif order.status == 'Cancelled' or order.status == 'Return Requested' or order.status == 'Payment Failed' %}
+                                                <span class="status-badge danger">
+                                                    <i class="fas fa-times-circle me-1"></i>{{ order.status }}
+                                                </span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <a href="{% url 'edit_order' order.id %}" class="btn btn-edit" title="Edit Order">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% else %}
+<div class="access-denied">
+    <div class="access-denied-content">
+        <i class="fas fa-lock mb-3"></i>
+        <h3>Access Denied</h3>
+        <p>You do not have permission to view this page.</p>
+    </div>
+</div>
+{% endif %}
+
+<style>
+/* Page Wrapper */
+.page-wrapper {
+    min-height: 100vh;
+    background-color: #f8f9fe;
+    padding: 20px 0;
+}
+
+/* Dashboard Card */
+.dashboard-card {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    margin: 20px 0;
+    max-width: 100%;
+}
+
+.dashboard-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 25px rgba(0, 0, 0, 0.1);
+}
+
+/* Card Header */
+.card-header {
+    background: linear-gradient(45deg, #266BF9, #1e5fd8);
+    color: white;
+    border-radius: 15px 15px 0 0 !important;
+    padding: 1rem 1.25rem;
+}
+
+.order-count {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+}
+
+/* Table Styling */
+.custom-table {
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+.custom-table thead th {
+    background-color: #f8f9fa;
+    border-bottom: 2px solid #dee2e6;
+    padding: 0.8rem;
+    font-weight: 600;
+    color: #495057;
+}
+
+.custom-table tbody td,
+.custom-table tbody th {
+    padding: 0.8rem;
+}
+
+.custom-table tbody tr {
+    transition: background-color 0.2s ease;
+}
+
+.custom-table tbody tr:hover {
+    background-color: #f8f9fe;
+}
+
+/* Order ID */
+.order-id {
+    font-family: monospace;
+    font-weight: 500;
+    color: #495057;
+    font-size: 0.85rem;
+}
+
+/* Avatar Circle */
+.avatar-circle {
+    width: 30px;
+    height: 30px;
+    background-color: #266BF9;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.8rem;
+}
+
+/* Status Badges */
+.status-badge {
+    padding: 0.3rem 0.6rem;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
+}
+
+.status-badge i {
+    font-size: 0.75rem;
+}
+
+.status-badge.success {
+    background-color: #dcf5e7;
+    color: #0a8a3f;
+}
+
+.status-badge.warning {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.status-badge.danger {
+    background-color: #fde8e8;
+    color: #c81e1e;
+}
+
+/* Edit Button */
+.btn-edit {
+    background-color: #f8f9fa;
+    color: #266BF9;
+    border-radius: 6px;
+    padding: 0.4rem 0.6rem;
+    transition: all 0.2s ease;
+}
+
+.btn-edit:hover {
+    background-color: #266BF9;
+    color: white;
+}
+
+/* Access Denied Page */
+.access-denied {
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f8f9fe;
+}
+
+.access-denied-content {
+    background-color: white;
+    padding: 2rem;
+    border-radius: 15px;
+    text-align: center;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.1);
+}
+
+.access-denied-content i {
+    font-size: 2.5rem;
+    color: #dc3545;
+}
+
+.access-denied-content h3 {
+    color: #343a40;
+    margin-bottom: 0.5rem;
+}
+
+.access-denied-content p {
+    color: #6c757d;
+    margin-bottom: 0;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 992px) {
+    .col-lg-7 {
+        width: 85%;
+    }
+}
+
+@media (max-width: 768px) {
+    .page-wrapper {
+        padding: 10px;
+    }
+    
+    .card-header {
+        padding: 0.8rem 1rem;
+    }
+    
+    .custom-table {
+        font-size: 0.85rem;
+    }
+    
+    .status-badge {
+        padding: 0.25rem 0.5rem;
+    }
+}
+</style>
+
+{% endblock %}

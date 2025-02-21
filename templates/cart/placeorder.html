@@ -1,0 +1,127 @@
+{% extends 'main/base.html' %}
+{%load static%}
+
+
+{% block content %}
+<form method="post"></form>
+{% if request.session.cart|length < 1 %}
+
+        <!-- Empty Cart area start -->
+        <div class="empty-cart-area pb-100px pt-100px">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="cart-heading">
+                            <h2>Your Order</h2>
+                        </div>
+                        <div class="empty-text-contant text-center">
+                            <i class="pe-7s-shopbag"></i>
+                            <h3>There are no more orders placed</h3>
+                            <a class="empty-cart-btn" href="{%url 'product'%}">
+                                <i class="fa fa-arrow-left"> </i> Continue shopping
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Empty Cart area end -->
+
+
+
+{%  else %}
+
+
+{% load cart_tag %}
+        <!-- Cart Area Start -->
+        <div class="cart-main-area pt-100px pb-100px">
+            <div class="container">
+                <h3 class="cart-page-title">Your Order</h3>
+                <div class="row">
+                    <div class="col-lg-12 col-md-12 col-sm-12 col-12">
+                        <form action="#">
+                            <div class="table-content table-responsive cart-table-content">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Image</th>
+                                            <th>Product Name</th>
+                                            <th>Price</th>
+                                            <th>Qty</th>
+                                            <th>Amount</th>
+                                            <!--<th>Status>
+                                            <th>Action</th>-->
+                                        </tr>
+                                    </thead>
+
+                                    
+                                    <tbody>
+                                        {% for key,value in request.session.cart.items %}
+                                        <tr>
+                                            <td class="product-thumbnail">
+                                                <a href="#"><img class="img-responsive ml-15px" src="{{value.image}}" alt="" /></a>
+                                            </td>
+                                            <td class="product-name"><a href="#">{{value.name | truncatewords:3}}</a></td>
+                                            <td class="product-price-cart"><span class="amount">{{value.price}}</span></td>
+                                            <td class="cart_quantity">
+                                                <div class="cart_quantity_button">
+                                                    <a>{{value.quantity}}</a>
+                                                </div>
+                                            </td>
+                                            <td class="product-subtotal">{{ value.price|multiply:value.quantity }}</td>
+                                           <!-- <td class="product-remove">
+                                               <a href="#"><i class="fa fa-pencil"></i></a>-->
+                                                <!--<a href="{% url 'item_clear' key %}"><i class="fa fa-times" aria-hidden="true"></i></a>
+                                            </td>-->
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                    
+                                </table>
+                            </div>
+                            
+                        </form>
+
+
+
+                        <br>
+                        <br>
+                        <div class="row">
+                            <div class="col-lg-4 col-md-6 ms-auto mb-lm-30px text-end">
+                                <a href="{% url 'clear_session' %}" class="float-end">Okay</a>
+                            </div>
+                        </div>
+
+
+
+
+                    </div>
+                    <br>
+                    
+                </div>
+            </div>
+            
+            
+        </div>
+
+        <!-- Cart Area End -->
+
+{% endif %}
+
+
+    <script>
+        function increaseQuantity(event) {
+            const input = event.target.closest(".cart_quantity_button").querySelector(".cart-plus-minus-box");
+            input.value = parseInt(input.value) + 1;
+        }
+        
+        function decreaseQuantity(event) {
+            const input = event.target.closest(".cart_quantity_button").querySelector(".cart-plus-minus-box");
+            if (parseInt(input.value) > 1) {
+                input.value = parseInt(input.value) - 1;
+            }
+        }
+        
+        </script>
+
+{% endblock %}

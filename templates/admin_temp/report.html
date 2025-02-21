@@ -1,0 +1,225 @@
+{% extends 'admin_temp/admin_base.html' %}
+{% load static %}
+
+{% block content %}
+{% if user.is_staff %}
+<style>
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+    }
+    table th, table td {
+        border: 1px solid #ccc;
+        padding: 10px;
+        text-align: center;
+    }
+    form {
+        margin-bottom: 20px;
+    }
+    .card {
+        background-color: #ffffff;
+        border-radius: 8px;
+        padding: 30px;
+        box-shadow: 0 6px 6px rgba(0, 0, 0, 0.1);
+        margin-top: 20px;
+    }
+    .card h2 {
+        font-size: 1.8rem;
+        margin-bottom: 15px;
+    }
+    .card p {
+        font-size: 1.2rem;
+        margin: 5px 0;
+    }
+    .card .summary-section {
+        display: flex;
+        justify-content: space-between;
+        border-bottom: 2px solid #ddd;
+        padding-bottom: 15px;
+    }
+    .card .empty-message {
+        text-align: center;
+        color: #999;
+    }
+    .btn-download {
+        background-color: #007bff;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        font-size: 1rem;
+        text-decoration: none;
+        display: inline-block;
+        margin-top: 10px;
+    }
+    .btn-download:hover {
+        background-color: #0056b3;
+        text-decoration: none;
+    }
+</style>
+<center>
+    <br>
+<br>
+<h1>Sales Report</h1>
+<br>
+<!-- Filter Form -->
+<form method="get">
+    <label for="filter">Filter By:</label>
+    <select name="filter" id="filter">
+        <option value="daily">Daily</option>
+        <option value="weekly">Weekly</option>
+        <option value="monthly">Monthly</option>
+        <option value="yearly">Yearly</option>
+        <option value="custom">Custom Date Range</option>
+    </select>
+
+    <!-- Custom Date Range -->
+    <div id="custom-date-range" style="display: none;">
+        <label for="start_date">Start Date:</label>
+        <input type="date" name="start_date" id="start_date">
+        <label for="end_date">End Date:</label>
+        <input type="date" name="end_date" id="end_date">
+    </div>
+
+    <button type="submit">Apply Filter</button>
+</form>
+
+</center>
+<!-- Sales Summary in Card -->
+<div class="card">
+    
+    <div class="summary-section">
+        <div class="summary-item">
+            <p><strong>Total Orders:</strong> {{ total_sales_count }}</p>
+        </div>
+        <div class="summary-item">
+            <p><strong>Discount Count:</strong> {{ discount_orders_count }}</p>
+        </div>
+        <div class="summary-item">
+            <p><strong>Total Products Sold:</strong> {{ total_quantity }}</p>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        background-color: #ffffff;
+        border-radius: 8px;
+        padding: 30px;
+        box-shadow: 0 6px 6px rgba(0, 0, 0, 0.1);
+        margin-top: 20px;
+    }
+    .card h2 {
+        font-size: 1.8rem;
+        margin-bottom: 15px;
+    }
+    .summary-section {
+        display: flex;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 20px;
+    }
+    .summary-item {
+        background-color: #f9f9f9;
+        padding: 15px;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        width: 30%;
+    }
+    .summary-item p {
+        font-size: 1.2rem;
+    }
+</style>
+
+<hr>
+
+<!-- Order Details Table -->
+<div class="card">
+    <h2>Order Details</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Order ID</th>
+                <th>User</th>
+                <th>Date</th>
+                <th>Status</th>
+                <th>Amount</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for order in orders %}
+            <tr>
+                <td>{{ order.payment_id }}</td>
+                <td>{{ order.user.username }}</td>
+                <td>{{ order.date }}</td>
+                <td>{{ order.status }}</td>
+                <td>${{ order.amount }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" class="empty-message">No orders found for the selected period.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Order Items in Card -->
+<hr>
+<div class="card">
+    <h2>Order Items</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Order ID</th>
+                <th>Product</th>
+                <th>Quantity</th>
+                <th>Price</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in order_items %}
+            <tr>
+                <td>{{ item.order.id }}</td>
+                <td>{{ item.product }}</td>
+                <td>{{ item.quantity }}</td>
+                <td>${{ item.price }}</td>
+                <td>${{ item.total }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" class="empty-message">No items found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+<br>
+<br>
+<!-- Download PDF Button -->
+<center><a href="{% url 'generate_sales_pdf' %}" class="btn-download" target="_blank">Download PDF</a></center>
+<br>
+<br>
+<br>
+
+<script>
+    // Show/hide custom date range based on filter selection
+    document.getElementById('filter').addEventListener('change', function() {
+        const customDateRange = document.getElementById('custom-date-range');
+        customDateRange.style.display = this.value === 'custom' ? 'block' : 'none';
+    });
+</script>
+
+{% else %}
+<!-- Access Denied Message Card -->
+<div class="card" style="max-width: 800px;">
+    <div class="text-center mb-4">
+        <h3 class="display-4" style="color: #007bff;">Access Denied</h3>
+        <p>You do not have permission to access this report.</p>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}

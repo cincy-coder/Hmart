@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Details</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+    
+        .order-container {
+            max-width: 900px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+    
+        h2 {
+            font-size: 24px;
+            text-align: center;
+            color: #444;
+        }
+    
+        .order-summary {
+            margin-bottom: 20px;
+        }
+    
+        .order-summary p {
+            font-size: 16px;
+            line-height: 1.6;
+        }
+    
+        .order-summary address {
+            font-style: normal;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+    
+        .order-items {
+            margin-bottom: 30px;
+        }
+    
+        .order-items h3 {
+            font-size: 20px;
+            color: #444;
+        }
+    
+        table {
+            width: 100%;
+            margin: 20px 0;
+            border-collapse: collapse;
+        }
+    
+        table th, table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+    
+        table th {
+            background-color: #f4f4f4;
+            font-weight: bold;
+        }
+    
+        table td img {
+            max-width: 70px;
+            max-height: 50px;
+            object-fit: cover;
+        }
+    
+        .total {
+            font-size: 18px;
+            font-weight: bold;
+            color: #ff4d4d;
+        }
+    
+        .download-btn {
+            margin-top: 20px;
+            text-align: center;
+        }
+    
+        .download-btn .btn {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-size: 16px;
+            text-decoration: none;
+        }
+    
+        .download-btn .btn:hover {
+            background-color: #0056b3;
+        }
+
+        form {
+            margin-top: 20px;
+            background-color: #f8f8f8;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+        }
+    
+        form h1 {
+            font-size: 18px;
+            color: #444;
+        }
+    
+        label {
+            font-size: 16px;
+            color: #555;
+            cursor: pointer;
+            margin-right: 20px;
+        }
+    
+        input[type="radio"] {
+            margin-right: 8px;
+            transform: scale(1.2);
+        }
+    
+        .cancel-btn {
+            background-color: #ff4d4d;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.3s;
+            width: 100%;
+            margin-top: 20px;
+        }
+    
+        .cancel-btn:hover {
+            background-color: #cc0000;
+        }
+    
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            text-decoration: none;
+            font-size: 16px;
+            color: #007bff;
+        }
+    
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .order-container {
+                padding: 15px;
+            }
+    
+            table th, table td {
+                font-size: 14px;
+                padding: 10px;
+            }
+    
+            .cancel-btn {
+                padding: 12px 18px;
+                font-size: 14px;
+            }
+    
+            .back-link {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="order-container">
+        <h2>Order Details</h2>
+        <div class="order-summary">
+            <p><strong>Order ID:</strong> {{ order.id }}</p>
+            <p><strong>Order Date:</strong> {{ order.date }}</p>
+            <p><strong>Order Status:</strong> {{ order.status }}</p>
+            <p><strong>Payment Mode:</strong> {{ order.payment_mode }}</p>
+            <p><strong>Paid:</strong> {{ order.paid|yesno:"Yes,No" }}</p>
+            <p><strong>Shipping Address:</strong></p>
+            <address>
+                {{ order.address.firstname }} {{ order.address.lastname }}<br>
+                {{ order.address.address }}<br>
+                {{ order.address.city }}, {{ order.address.state }} - {{ order.address.postcode }}<br>
+                {{ order.address.country }}<br>
+                Phone: {{ order.address.phone }}<br>
+                Email: {{ order.address.email }}
+            </address>
+        </div>
+        
+        <div class="order-items">
+            <h3>Order Items</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Image</th>
+                        <th>Quantity</th>
+                        <th>Price</th>
+                        <th>Action</th>
+                        
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in order_items %}
+                    
+                    <tr>
+                        <td>{{ item.product | truncatewords:4 }}</td>
+                        <td>
+                            {% if item.image %}
+                            <img src="{{ item.image.url }}" alt="Product Image">
+                            {% endif %}
+                        </td>
+                        <td>{{ item.quantity }}</td>
+                        <td>{{ item.price }}/-</td>
+                        <td>
+                        {% for i in product %}
+                        {% if i.name == item.product %}
+                        <a href="{% url 'cart_add' i.id %}">Add to Cart</a>
+                        {%endif%}
+                        {%endfor%}
+                    </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <p class="total">Order Total: {{ order.amount }}/-</p>
+        </div>
+
+        <a href="{% url 'profile' %}" class="back-link">Back to Orders</a>
+    </div>
+</body>
+</html>

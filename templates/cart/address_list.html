@@ -1,0 +1,30 @@
+{% extends 'main/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="address-list" style="display: flex; flex-wrap: wrap; gap: 20px;">
+  {% for address in addresses %}
+  <div class="card" style="flex: 0 0 calc(50% - 20px); margin: 10px;">
+      <div class="card-body">
+          <h5 class="card-title">{{ address.firstname }} {{ address.lastname }}</h5>
+          <p class="card-text">
+              {{ address.address }}<br>
+              {{ address.city }}, {{ address.state }} - {{ address.postcode }}<br>
+              {{ address.country }}<br>
+              Phone: {{ address.phone }}<br>
+              Email: {{ address.email }}
+          </p>
+          <div style="display: flex; gap: 10px; margin-top: 10px;">
+              <a href="{% url 'edit_address' address.id %}" style="opacity: 1; visibility: visible;">Edit</a>
+              <form action="{% url 'delete_address' address.id %}" method="post">
+                  {% csrf_token %}
+                  <button type="submit" style="opacity: 1; color: red;">Delete</button>
+              </form>
+          </div>
+      </div>
+  </div>
+  {% endfor %}
+</div>
+
+
+{% endblock %}

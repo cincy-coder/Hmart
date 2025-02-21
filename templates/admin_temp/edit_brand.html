@@ -1,0 +1,75 @@
+{% if user.is_staff %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Brand</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        h3 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #333;
+        }
+        .form-group label {
+            font-weight: bold;
+        }
+        .form-control {
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            padding: 10px;
+            font-size: 16px;
+        }
+        .btn-primary {
+            background-color: #266BF9;
+            border-color: #266BF9;
+            color: #fff;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 4px;
+            width: 100%;
+        }
+        .btn-primary:hover {
+            background-color: #1f5bbf;
+            border-color: #1a4a9c;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h3>Edit Brand</h3>
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            {{ form.as_p }}
+        </div>
+        <button type="submit" class="btn btn-primary">Save Changes</button>
+    </form>
+</div>
+
+</body>
+</html>
+{%else%}
+<div class="container" style="max-width: 800px; background-color:#ffffff
+    border-radius: 8px; padding: 30px; box-shadow: 0 6px 6px rgba(0, 0, 0, 0.1); margin-top: 20px;">
+    <div class="text-center mb-4">
+        <h3 class="display-4" style="color: #007bff;">Access Denied</h3>
+        <p>You do not have permission</p>
+        
+{% endif %}

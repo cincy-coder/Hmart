@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title></title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+            
+            body {
+                font-family: 'Arial', sans-serif;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                min-height: 100vh;
+                background: white;
+                padding: 20px;
+            }
+            
+            .form-title {
+                font-size: 32px;
+                font-weight: bold;
+                color: #333;
+                text-align: center;
+                margin-bottom: 20px;
+            }
+            
+            .blurred-form {
+                width: 100%;
+                max-width: 400px;
+                background: rgba(255, 255, 255, 0.8);
+                backdrop-filter: blur(10px);
+                padding: 20px 30px;
+                border-radius: 10px;
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            }
+            
+            .blurred-form input,
+            .blurred-form select,
+            .blurred-form textarea {
+                width: 100%;
+                padding: 10px;
+                margin-bottom: 15px;
+                border: 1px solid #ccc;
+                border-radius: 5px;
+                font-size: 14px;
+                background: rgba(255, 255, 255, 0.9);
+            }
+            
+            .submit-btn {
+                width: 100%;
+                padding: 10px;
+                background: #42a5f5;
+                border: none;
+                border-radius: 5px;
+                color: #fff;
+                font-size: 16px;
+                cursor: pointer;
+                transition: background 0.3s;
+            }
+            
+            .submit-btn:hover {
+                background: #1e88e5;
+            }
+        </style>
+    </head>
+    <body>
+        <h1 class="form-title">
+            {% if form.instance.id %}Edit Profile{% else %}Add Profile{% endif %}
+        </h1>
+        <form method="POST" class="blurred-form">
+            {% csrf_token %}
+            <label for="id_first_name">First Name:</label>
+            <input type="text" name="first_name" id="id_first_name" value="{{ user.first_name}}" required>
+            
+            <label for="id_last_name">Last Name:</label>
+            <input type="text" name="last_name" id="id_last_name" value="{{ user.last_name }}" required>
+            
+            <label for="id_email">Email:</label>
+            <input type="email" name="email" id="id_email" value="{{ user.email }}" required>
+            
+            {{ form.as_p }}
+            <button type="submit" class="submit-btn">Save</button>
+        </form>
+    </body>
+</html>

@@ -1,0 +1,276 @@
+{% extends 'admin_temp/admin_base.html' %}
+{% load static %}
+
+{% block content %}
+{% if user.is_staff %}
+<div class="container-fluid mt-4">
+    <!-- Dashboard Header -->
+    <header class="mb-5">
+        <h1 class="text-center" style="color: #266BF9;">Admin Dashboard</h1>
+    </header>
+
+    <!-- Stats Cards Section -->
+    <div class="row mb-5">
+        <!-- Users Card -->
+        <div class="col-md-4">
+            <div class="card text-white shadow h-100" 
+                style="background-color: #266BF9; transition: transform 0.2s;">
+                <div class="card-header d-flex align-items-center">
+                    <i class="fas fa-users fa-fw"></i>
+                    <span class="ms-2">Total Users</span>
+                </div>
+                <div class="card-body">
+                    <h2 class="card-title display-4">{{ user_count }}</h2>
+                </div>
+            </div>
+        </div>
+
+        <!-- Visitors Card -->
+        <div class="col-md-4">
+            <div class="card text-white shadow h-100"
+                style="background-color: #266BF9; transition: transform 0.2s;">
+                <div class="card-header d-flex align-items-center">
+                    <i class="fas fa-eye fa-fw"></i>
+                    <span class="ms-2">No: of 
+                        products
+                    </span>
+                </div>
+                <div class="card-body">
+                    <h2 class="card-title display-4">{{ product_count }}</h2>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sales Card -->
+        <div class="col-md-4">
+            <div class="card text-white shadow h-100"
+                style="background-color: #266BF9; transition: transform 0.2s;">
+                <div class="card-header d-flex align-items-center">
+                    <i class="fas fa-dollar-sign fa-fw"></i>
+                    <span class="ms-2">Total Sales</span>
+                </div>
+                <div class="card-body">
+                    <h2 class="card-title display-4">{{ total_amount }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sales Analytics Section -->
+    <section class="mb-5">
+        <h2 class="mb-4">Sales Analytics</h2>
+        
+        <!-- Date Range Filter -->
+        <center>
+        <div class="card shadow mb-4">
+            <div class="card-body">
+                <form method="GET" class="row g-3 align-items-center">
+                    <div class="col-auto">
+                        <label class="form-label">Start Date:</label>
+                        <input type="date" name="start_date" value="{{ start_date|date:'Y-m-d' }}" 
+                            class="form-control" required>
+                    </div>
+                    <div class="col-auto">
+                        <label class="form-label">End Date:</label>
+                        <input type="date" name="end_date" value="{{ end_date|date:'Y-m-d' }}" 
+                            class="form-control" required>
+                    </div>
+                    <div class="col-auto mt-4">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-filter me-2"></i>Filter
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </center>
+
+        <!-- Charts Grid -->
+        <div class="row">
+            <!-- Products Chart -->
+            <div class="col-md-12 mb-4">
+                <div class="card shadow">
+                    <div class="card-header">
+                        <h3 class="h5 mb-0">Best Selling Products</h3>
+                    </div>
+                    <div class="card-body">
+                        <div style="height: 400px; width: 100%;">
+                            <canvas id="productsChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Categories Chart -->
+            <!--<div class="col-md-6 mb-4">
+                <div class="card shadow">
+                    <div class="card-header">
+                        <h3 class="h5 mb-0">Sales by Category</h3>
+                    </div>
+                    <div class="card-body">
+                        <div style="height: 300px; width: 100%;">
+                            <canvas id="categoriesChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>-->
+
+            <!-- Brands Chart -->
+            <!--<div class="col-md-6 mb-4">
+                <div class="card shadow">
+                    <div class="card-header">
+                        <h3 class="h5 mb-0">Sales by Brand</h3>
+                    </div>
+                    <div class="card-body">
+                        <div style="height: 300px; width: 100%;">
+                            <canvas id="brandsChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>-->
+    </section>
+</div>
+
+{% else %}
+<div class="container">
+    <div class="card shadow-lg border-0 rounded-lg mt-5">
+        <div class="card-body p-5">
+            <div class="text-center">
+                <h1 class="display-1 fw-bold text-danger">403</h1>
+                <p class="lead">Access Denied</p>
+                <p class="text-muted">You do not have permission to access this page.</p>
+                <a href="{% url 'home' %}" class="btn btn-primary">
+                    <i class="fas fa-home me-2"></i>Return Home
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Charts Initialization -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Function to truncate product names
+    function truncateLabel(label) {
+        const words = label.split(' ').slice(0, 2);  // Get first 2 words only
+        return words.join(' ');
+    }
+
+    // Common chart options
+    const chartOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                display: false
+            },
+            tooltip: {
+                callbacks: {
+                    // Show full name in tooltip
+                    label: function(context) {
+                        const originalLabel = context.raw;
+                        const fullName = context.chart.data.labels[context.dataIndex];
+                        return `${fullName}: ${originalLabel} units`;
+                    }
+                }
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                grid: {
+                    drawBorder: false,
+                    color: 'rgba(0, 0, 0, 0.1)'
+                }
+            },
+            x: {
+                ticks: {
+                    callback: function(value, index) {
+                        const label = this.getLabelForValue(value);
+                        return truncateLabel(label);
+                    },
+                    maxRotation: 45,
+                    minRotation: 45,
+                    font: {
+                        size: 10
+                    }
+                },
+                grid: {
+                    display: false
+                }
+            }
+        },
+        layout: {
+            padding: {
+                top: 20,
+                bottom: 20
+            }
+        }
+    };
+
+    // Add hover effects to cards
+    document.querySelectorAll('.card').forEach(card => {
+        card.addEventListener('mouseenter', () => {
+            card.style.transform = 'scale(1.02)';
+            card.style.transition = 'transform 0.3s ease';
+        });
+        card.addEventListener('mouseleave', () => {
+            card.style.transform = 'scale(1)';
+        });
+    });
+
+    // Initialize charts with data
+    new Chart(document.getElementById('productsChart'), {
+        type: 'bar',
+        data: {
+            labels: [{% for product in best_selling_products %}"{{ product.product }}",{% endfor %}],
+            datasets: [{
+                label: 'Units Sold',
+                data: [{% for product in best_selling_products %}{{ product.total_quantity }},{% endfor %}],
+                backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1,
+                barThickness: 'flex',
+                maxBarThickness: 40
+            }]
+        },
+        options: chartOptions
+    });
+
+    /*new Chart(document.getElementById('categoriesChart'), {
+        type: 'bar',
+        data: {
+            labels: [{% for category in best_selling_categories %}"{{ category.product }}",{% endfor %}],
+            datasets: [{
+                label: 'Units Sold',
+                data: [{% for category in best_selling_categories %}{{ category.total_quantity }},{% endfor %}],
+                backgroundColor: 'rgba(255, 99, 132, 0.6)',
+                borderColor: 'rgba(255, 99, 132, 1)',
+                borderWidth: 1,
+                barThickness: 'flex',
+                maxBarThickness: 40
+            }]
+        },
+        options: chartOptions
+    });*/
+
+    /*new Chart(document.getElementById('brandsChart'), {
+        type: 'bar',
+        data: {
+            labels: [{% for brand in best_selling_brands %}"{{ brand.product }}",{% endfor %}],
+            datasets: [{
+                label: 'Units Sold',
+                data: [{% for brand in best_selling_brands %}{{ brand.total_quantity }},{% endfor %}],
+                backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1,
+                barThickness: 'flex',
+                maxBarThickness: 40
+            }]
+        },
+        options: chartOptions
+    });*/
+</script>
+{% endblock %}
