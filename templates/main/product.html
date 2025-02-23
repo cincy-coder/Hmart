@@ -66,8 +66,13 @@
                                                         </span>
                                                         <div class="thumb">
                                                             <a href="product/{{prod.id}}" class="image">
+
+                                                                <img src="{{prod.image.url}}" alt="Product" style="height:255px;"/>
+                                                                <img class="hover-image" src="{{prod.image.url}}" alt="Product" />
+
                                                                 <img src="{{prod.image}}" alt="Product" style="height:255px;"/>
                                                                 <img class="hover-image" src="{{prod.image}}" alt="Product" />
+
                                                             </a>
                                                         </div>
                                                         <div class="content">
@@ -107,8 +112,13 @@
                                                         <div class="product">
                                                             <div class="thumb">
                                                                 <a href="product/{{prod.id}}" class="image">
+
+                                                                    <img src="{{prod.image.url}}" alt="Product" />
+                                                                    <img class="hover-image" src="{{prod.image.url}}" alt="Product" />
+
                                                                     <img src="{{prod.image}}" alt="Product" />
                                                                     <img class="hover-image" src="{{prod.image}}" alt="Product" />
+
                                                                 </a>
                                                                 <span class="badges">
                                                                                 {% with prod.get_active_offer as product_offer %}
