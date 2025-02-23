@@ -50,6 +50,33 @@
       margin-top: 5px;
       display: block;
   }
+  /* Styling for total amount */
+  .cart-total {
+      font-size: 18px;
+      font-weight: bold;
+      margin-top: 20px;
+      text-align: right;
+  }
+    /* Styling for total amount */
+    .cart-total {
+        font-size: 18px;
+        font-weight: bold;
+        margin-top: 20px;
+        text-align: right;
+        color: red; /* Highlighting total amount */
+    }
+    .cart-gst {
+        font-size: 16px;
+        font-weight: bold;
+        text-align: right;
+        color: #333; /* Default text color */
+    }
+    .cart-grand-total {
+        font-size: 20px;
+        font-weight: bold;
+        text-align: right;
+        color: darkgreen; /* Highlighting grand total */
+    }
 </style>
 
 {% if request.session.cart|length < 1 %}
@@ -140,90 +167,30 @@
                                   <div class="cart-clear">
                                       <a href="{% url 'cart_clear' %}">Clear Shopping Cart</a>
                                   </div>
-                              
+                                  <div class="cart-clear">
+                                      <a href="{% url 'address_list' %}">Proceed to Checkout</a>
+                                  </div>
                               </div>
                           </div>
                       </div>
                   </form>
-                  
-
-
-                  <!-- Additional checkout or coupon code sections here -->
+                  <!-- Display the cart total -->
+               
+                  <div class="cart-total" id="cart-total">Total: ₹0</div>
+                  <div class="cart-shipping-Charge" id="cart-Sc" style="float: right;">
+                    <strong>Shipping Charge: 1070</strong>
+                </div><br>
+                    <div class="cart-gst" id="cart-gst">GST (7%): ₹0</div>
+                <div class="cart-grand-total" id="cart-grand-total">Grand Total: ₹0</div>
               </div>
-              {% if not user.user_coupons.exists %}
-                            <div class="col-lg-4 col-md-6 mb-lm-30px">
-                                <div class="discount-code-wrapper">
-                                    <div class="title-wrap">
-                                        <h4 class="cart-bottom-title section-bg-gray">Welcome Bonus</h4>
-                                    </div>
-                                    <div class="discount-code">
-                                        
-                                        <p>Use Coupon Code: {{coupon_display.code}}</p>
-                                        <b>Discount: {{coupon_display.discount_amount}}% off</b>
-                                        <form method= "post" action="{% url 'add_user_coupon' %}">
-                                            {% csrf_token %}
-                                            <input type="text" required="" name="input_coupon" />
-                                            <button class="cart-btn-2" type="submit">Apply Coupon</button>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
-                            {% else %}
-                            <div class="col-lg-4 col-md-6 mb-lm-30px">
-                                <div class="discount-code-wrapper">
-                                    <div class="title-wrap">
-                                        <h4 class="cart-bottom-title section-bg-gray">Welcome Bonus Coupon</h4>
-                                        
-                                    </div>
-                                    <div class="discount-code">
-                                        <p>Coupon Used.</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {% endif %}
-                            <div class="col-lg-4 col-md-12 mt-md-30px">
-                                <div class="grand-totall">
-                                    <div class="title-wrap">
-                                        <h4 class="cart-bottom-title section-bg-gary-cart">Cart Total</h4>
-                                    </div>
-                                    <h5>Total products <span>{{total_price}}/-</span></h5>
-                                    <div class="total-shipping">
-                                        <h5>Total</h5>
-                                        <ul>
-                                            <li> Shipping Charge:<span>1070/-</span></li>
-                                            <li> GST: <span>7% of Amt.</span></li> 
-                                            {% if not user.user_coupons.exists %}
-                                           <!--<li> Add Coupon: <span>{{coupon_display.discount_amount}}%</span></li>-->
-                                           <li> Coupon of {{coupon_display.discount_amount}}% added: <span>No</span></li>
-                                            {% endif %}
-                                        </ul>
-                                        <ul>
-                                        
-                                    <h4 class="grand-totall-title">Grand Total <span>{{ grand_total}}/-</span></h4>
-                                    
-                                    <a href="{% url 'address_list' %}">Proceed to Checkout</a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <!-- Cart Area End -->
-
-
           </div>
-
-
-          
       </div>
-      
   </div>
   <!-- Cart Area End -->
+
 {% endif %}
 
-<!-- Real-Time Quantity & Stock Update JavaScript -->
+<!-- Real-Time Quantity & Stock Update JavaScript and Total Update -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Retrieve CSRF token
@@ -259,6 +226,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (warningElem) {
                     warningElem.textContent = '';
                 }
+                // Update cart total after quantity change
+                updateCartTotal();
             } else {
                 // Show error message if the update failed
                 const warningElem = productRow.querySelector('.stock-warning');
@@ -313,6 +282,88 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.cart_quantity_down').forEach(button => {
         button.addEventListener('click', decreaseQuantity);
     });
+
+    // Function to update the cart total from the server
+    function updateCartTotal() {
+        fetch('/cart/total/')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('cart-total').innerText = `Total: ₹${data.total_amount}`;
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching cart total:', error);
+        });
+    }
+
+    // Update the total amount when the page loads
+    updateCartTotal();
 });
+</script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Function to update the cart total and GST
+        function updateCartTotal() {
+            fetch('/cart/total/')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    let total = parseFloat(data.total_amount);
+                    let gst = total * 0.07;  // Calculating 7% GST
+                    let grandTotal = total + gst + 1070;
+    
+                    document.getElementById('cart-total').innerText = `Total: ₹${total.toFixed(2)}`;
+                    document.getElementById('cart-gst').innerText = `GST (7%): ₹${gst.toFixed(2)}`;
+                    document.getElementById('cart-grand-total').innerText = `Grand Total: ₹${grandTotal.toFixed(2)}`;
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching cart total:', error);
+            });
+        }
+    
+        // Update the total amount when the page loads
+        updateCartTotal();
+    });
+    </script>
+<script>
+      function updateQuantityOnServer(productId, newQuantity, productRow) {
+    fetch('/cart/update_quantity/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken,
+        },
+        body: JSON.stringify({
+            product_id: productId,
+            quantity: newQuantity
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Update UI
+            productRow.querySelector('.cart-plus-minus-box').value = data.new_quantity;
+            productRow.querySelector('.product-subtotal').textContent = data.subtotal + '/-';
+            productRow.querySelector('.available-stock').textContent = data.available_stock;
+            productRow.querySelector('.stock-warning').textContent = ''; // Clear warnings
+            updateCartTotal(); // Update the cart total
+        } else {
+            // Show error message
+            const warningElem = productRow.querySelector('.stock-warning');
+            if (warningElem) {
+                warningElem.textContent = data.message;
+            }
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        const warningElem = productRow.querySelector('.stock-warning');
+        if (warningElem) {
+            warningElem.textContent = 'Error updating quantity. Please try again.';
+        }
+    });
+}
 </script>
 {% endblock %}
