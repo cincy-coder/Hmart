@@ -12,6 +12,7 @@ urlpatterns = [
     #path('cart/cart_clear', views.cart_clear, name='cart_clear'),
     path('cart/cart_detail',views.cart_detail,name='cart_detail'),
     path('cart/update_quantity/', views.update_cart_quantity, name='update_cart_quantity'),
+    path('cart/total/', views.get_cart_total, name='cart_total'),
     
     path('wishlist/add/<int:product_id>', views.add_to_wishlist, name='wishlist_add'),
     path('wishlist/remove/<int:product_id>', views.remove_from_wishlist, name='wishlist_remove'),
