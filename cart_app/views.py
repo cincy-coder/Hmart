@@ -13,6 +13,8 @@ from user.models import *
 from django.http import JsonResponse
 from .utils import *
 import uuid
+import logging
+from django.core.exceptions import ValidationError
 from django.http import HttpResponseBadRequest
 from django.contrib import messages
 import json
@@ -72,79 +74,116 @@ def item_clear(request, id):
 def add_user_coupon(request):
     user = request.user
     if request.method == "POST":
-        input_coupon = request.POST.get('input_coupon')
+        input_coupon = request.POST.get("input_coupon")
         try:
             coupon = Coupon.objects.get(code=input_coupon, is_active=True, expiry_date__gte=timezone.now().date())
         except Coupon.DoesNotExist:
-            # Handle invalid coupon case (e.g., show an error message)
-            return redirect("cart_detail")  
+            return JsonResponse({"error": "Invalid or expired coupon."}, status=400)
 
         # Check if the user has already redeemed this coupon
         if not UserCoupon.objects.filter(user=user, coupon=coupon).exists():
-            UserCoupon.objects.create(user=user, coupon=coupon, redeemed_at=timezone.now())
-    
-    return redirect("cart_detail")
+            user_coupon = UserCoupon.objects.create(user=user, coupon=coupon, redeemed_at=timezone.now())
+
+            # Convert model instance to dictionary before returning JSON
+            return JsonResponse({
+                "message": "Coupon successfully applied!",
+                "coupon": {
+                    "id": user_coupon.id,
+                    "code": user_coupon.coupon.code,
+                    "discount_amount": user_coupon.coupon.discount_amount,
+                    "redeemed_at": user_coupon.redeemed_at.strftime("%Y-%m-%d %H:%M:%S"),
+                }
+            })
+
+        return JsonResponse({"error": "Coupon already redeemed."}, status=400)
+
+    return JsonResponse({"error": "Invalid request method."}, status=405)
+
+logger = logging.getLogger(__name__)
 
 @login_required
 @require_POST
 def update_cart_quantity(request):
-    data = json.loads(request.body)
-    product_id = data.get('product_id')
-    new_quantity = data.get('quantity') 
-    
-    print(product_id)
-    print(new_quantity)
-    # Validate input values
-    if not product_id or not new_quantity:
-        return JsonResponse({'success': False, 'message': 'Invalid data.'})
-    
     try:
-        product = Product.objects.get(id=product_id)
-    except Product.DoesNotExist:
-        return JsonResponse({'success': False, 'message': 'Product does not exist.'})
-    
-    # Assume the product has an attribute 'stock' representing available units
-    available_stock = product.stock
-    
-    if new_quantity > available_stock:
+        data = json.loads(request.body)
+        product_id = data.get('product_id')
+        new_quantity = data.get('quantity')
+
+        # Validate input values
+        if not product_id or not new_quantity:
+            return JsonResponse({'success': False, 'message': 'Invalid data.'}, status=400)
+
+        # Ensure new_quantity is a positive integer and does not exceed the maximum limit (e.g., 5)
+        try:
+            new_quantity = int(new_quantity)
+            if new_quantity <= 0:
+                return JsonResponse({'success': False, 'message': 'Quantity must be a positive integer.'}, status=400)
+            if new_quantity > 5:  # Enforce maximum quantity limit
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Maximum quantity per product is 5.',
+                    'max_limit_exceeded': True  # Add a flag to indicate the limit was exceeded
+                }, status=400)
+        except ValueError:
+            return JsonResponse({'success': False, 'message': 'Quantity must be a valid integer.'}, status=400)
+
+        # Fetch the product
+        try:
+            product = Product.objects.get(id=product_id)
+        except Product.DoesNotExist:
+            return JsonResponse({'success': False, 'message': 'Product does not exist.'}, status=404)
+
+        # Check available stock
+        available_stock = product.stock
+        if new_quantity > available_stock:
+            return JsonResponse({
+                'success': False,
+                'message': 'Quantity exceeds available stock.',
+                'available_stock': available_stock
+            }, status=400)
+
+        # Update the cart stored in the session
+        cart = request.session.get('cart', {})
+        product_found = False
+
+        for key, item in cart.items():
+            if str(item['product_id']) == str(product_id):
+                item['quantity'] = new_quantity
+                item['available_stock'] = available_stock  # Update available stock
+                product_found = True
+                break
+
+        if not product_found:
+            return JsonResponse({'success': False, 'message': 'Product not found in cart.'}, status=404)
+
+        # Save the updated cart to the session
+        request.session['cart'] = cart
+        request.session.modified = True
+
+        # Calculate the new subtotal for this product
+        subtotal = product.price * new_quantity
+
+        # Return success response
         return JsonResponse({
-            'success': False, 
-            'message': 'Quantity exceeds available stock.',
-            'available_stock': available_stock
+            'success': True,
+            'new_quantity': new_quantity,
+            'subtotal': subtotal,
+            'available_stock': available_stock,
         })
-    
-    # Update the cart stored in the session
-    cart = request.session.get('cart', {})
 
-    for key, item in cart.items():
-        print("1111111111111111111111111111111111111")
+    except Exception as e:
+        logger.error(f"Error updating cart quantity: {e}", exc_info=True)
+        return JsonResponse({'success': False, 'message': 'An error occurred while updating the cart.'}, status=500)
 
-        if str(item['product_id']) == str(product_id):
-            item['quantity'] =new_quantity
-            print(f"Item Quantity: {item['quantity']}")
+@login_required
+def get_cart_total(request):
+    cart = request.session.get('cart', {})  # Retrieve cart from session
+    total_amount = 0
 
-            # Optionally update available stock
-            item['available_stock'] = available_stock
-            break
+    for item in cart.values():
+        total_amount += int(item['price']) * int(item['quantity'])
 
-    request.session['cart'] = cart  # Explicitly reassign the modified cart
-    request.session.modified = True  # Force session to recognize the change
-    print(";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;")
-    print(request.session['cart'])
-        
-    # Calculate the new subtotal for this product
-    subtotal = product.price * new_quantity
-    
-    
-    
-    # Optionally, you could also recalculate total cart values here.
-    return JsonResponse({
-        'success': True,
-        'new_quantity': new_quantity,
-        'subtotal': subtotal,
-        'available_stock': available_stock,
-    })
-
+    return JsonResponse({'success': True, 'total_amount': total_amount})
 
 @login_required(login_url="/login")
 def cart_detail(request):
@@ -192,17 +231,33 @@ def cart_detail(request):
 
             # Append details
             products_info.append({
-                'product_name': item['name'],
-                'category': category.name,
-                'original_price': cart_price,
-                'discount_percentage': discount_percentage,
-                'user_coupon': user_coupon,
-                'discount_amount': discount_amount,
-                'category_discount_percentage': category_discount,
-                'category_discount_amount': category_discount_amount,
-                'final_price': final_price - category_discount_amount,  # Subtract category discount
-            })
-            request.session['products_info']=products_info
+    'product_name': item['name'],
+    'category': category.name,
+    'original_price': cart_price,
+    'discount_percentage': discount_percentage,
+    'user_coupon': {
+        'id': user_coupon.id if user_coupon else None,
+        'code': user_coupon.coupon.code if user_coupon else None,
+        'discount_amount': user_coupon.coupon.discount_amount if user_coupon else 0,
+        'redeemed_at': user_coupon.redeemed_at.strftime("%Y-%m-%d %H:%M:%S") if user_coupon else None,
+    },  
+    'discount_amount': discount_amount,
+    'category_discount_percentage': category.discount if hasattr(category, 'discount') else 0,  
+    'category_discount_amount': category_discount_amount,  
+    'final_price': final_price  
+})
+            request.session['products_info']= [
+    {
+        **product,
+        'user_coupon': {
+            'id': product['user_coupon']['id'],
+            'code': product['user_coupon']['code'],
+            'discount_amount': product['user_coupon']['discount_amount'],
+            'redeemed_at': product['user_coupon']['redeemed_at'],
+        } if product['user_coupon']['id'] else None  # ✅ Safe to store in session
+    }
+    for product in products_info
+]
             print("'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''")
             print(f"products_info:{request.session['products_info']}")
         except Product.DoesNotExist:
@@ -255,18 +310,15 @@ def cart_detail(request):
 
     # Render the cart details template with the calculated data
     return render(request, 'cart/cart_details.html', {
-        'products_info': products_info,
-        'total_price': total_price,
-        'total_discount': total_discount,
-        'final_total_price': final_total_price,
-        'coupon_code': coupon_code,
-        'coupon_discount': coupon_discount,
-        'grand_total': grand_total,
-        'gst_amount': gst_amount,
-        'user_coupon': user_coupon,
-        'coupon_display':coupon_display,
-        'calculate_grand_total': calculate_grand_total
-    })
+    'products_info': products_info,
+    'user_coupon': {
+        'id': user_coupon.id if user_coupon else None,
+        'code': user_coupon.coupon.code if user_coupon else None,
+        'discount_amount': user_coupon.coupon.discount_amount if user_coupon else 0,
+        'redeemed_at': user_coupon.redeemed_at.strftime("%Y-%m-%d %H:%M:%S") if user_coupon else None,
+    },
+})
+
     
 @login_required(login_url="/login")
 def check_out(request): 
@@ -276,6 +328,7 @@ def check_out(request):
 def address_list(request):
     addresses = Address.objects.filter(user=request.user)  # Get all addresses
     wallet = Wallet.objects.filter(user=request.user).first()
+    user_coupon = UserCoupon.objects.filter(user=request.user, redeemed_at__isnull=False).first()   
     
     # Calculate the amount to be paid after using the wallet
     total_checkout_amt = request.session.get('paid_amt_checkout', 0)
