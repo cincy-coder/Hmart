@@ -21,6 +21,8 @@ import json
 from django.views.decorators.http import require_POST
 client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
 
+logger = logging.getLogger(__name__)  # Get logger instance
+
 
 @login_required(login_url="/login")
 def cart_add(request, id):
@@ -70,37 +72,23 @@ def item_clear(request, id):
     cart.remove(product)
     return redirect("cart_detail")
 
+
 @login_required(login_url="/login")
 def add_user_coupon(request):
     user = request.user
     if request.method == "POST":
-        input_coupon = request.POST.get("input_coupon")
+        input_coupon = request.POST.get('input_coupon')
         try:
             coupon = Coupon.objects.get(code=input_coupon, is_active=True, expiry_date__gte=timezone.now().date())
         except Coupon.DoesNotExist:
-            return JsonResponse({"error": "Invalid or expired coupon."}, status=400)
+            # Handle invalid coupon case (e.g., show an error message)
+            return redirect("cart_detail")  
 
         # Check if the user has already redeemed this coupon
         if not UserCoupon.objects.filter(user=user, coupon=coupon).exists():
-            user_coupon = UserCoupon.objects.create(user=user, coupon=coupon, redeemed_at=timezone.now())
-
-            # Convert model instance to dictionary before returning JSON
-            return JsonResponse({
-                "message": "Coupon successfully applied!",
-                "coupon": {
-                    "id": user_coupon.id,
-                    "code": user_coupon.coupon.code,
-                    "discount_amount": user_coupon.coupon.discount_amount,
-                    "redeemed_at": user_coupon.redeemed_at.strftime("%Y-%m-%d %H:%M:%S"),
-                }
-            })
-
-        return JsonResponse({"error": "Coupon already redeemed."}, status=400)
-
-    return JsonResponse({"error": "Invalid request method."}, status=405)
-
-logger = logging.getLogger(__name__)
-
+            UserCoupon.objects.create(user=user, coupon=coupon, redeemed_at=timezone.now())
+    
+    return redirect("cart_detail")
 @login_required
 @require_POST
 def update_cart_quantity(request):
@@ -110,10 +98,9 @@ def update_cart_quantity(request):
         new_quantity = data.get('quantity')
 
         # Validate input values
-        if not product_id or not new_quantity:
+        if not product_id or new_quantity is None:
             return JsonResponse({'success': False, 'message': 'Invalid data.'}, status=400)
 
-        # Ensure new_quantity is a positive integer and does not exceed the maximum limit (e.g., 5)
         try:
             new_quantity = int(new_quantity)
             if new_quantity <= 0:
@@ -122,7 +109,7 @@ def update_cart_quantity(request):
                 return JsonResponse({
                     'success': False,
                     'message': 'Maximum quantity per product is 5.',
-                    'max_limit_exceeded': True  # Add a flag to indicate the limit was exceeded
+                    'max_limit_exceeded': True
                 }, status=400)
         except ValueError:
             return JsonResponse({'success': False, 'message': 'Quantity must be a valid integer.'}, status=400)
@@ -133,7 +120,7 @@ def update_cart_quantity(request):
         except Product.DoesNotExist:
             return JsonResponse({'success': False, 'message': 'Product does not exist.'}, status=404)
 
-        # Check available stock
+        # Check available stock from the database
         available_stock = product.stock
         if new_quantity > available_stock:
             return JsonResponse({
@@ -142,39 +129,31 @@ def update_cart_quantity(request):
                 'available_stock': available_stock
             }, status=400)
 
-        # Update the cart stored in the session
+        # Fetch the cart from session
         cart = request.session.get('cart', {})
-        product_found = False
 
-        for key, item in cart.items():
-            if str(item['product_id']) == str(product_id):
-                item['quantity'] = new_quantity
-                item['available_stock'] = available_stock  # Update available stock
-                product_found = True
-                break
-
-        if not product_found:
+        if str(product_id) in cart:
+            cart[str(product_id)]['quantity'] = new_quantity
+        else:
             return JsonResponse({'success': False, 'message': 'Product not found in cart.'}, status=404)
 
-        # Save the updated cart to the session
+        # Save updated cart in session
         request.session['cart'] = cart
         request.session.modified = True
 
-        # Calculate the new subtotal for this product
+        # Calculate the new subtotal
         subtotal = product.price * new_quantity
 
-        # Return success response
         return JsonResponse({
             'success': True,
             'new_quantity': new_quantity,
             'subtotal': subtotal,
-            'available_stock': available_stock,
+            'available_stock': available_stock  # Always return the latest stock count
         })
 
     except Exception as e:
         logger.error(f"Error updating cart quantity: {e}", exc_info=True)
         return JsonResponse({'success': False, 'message': 'An error occurred while updating the cart.'}, status=500)
-
 @login_required
 def get_cart_total(request):
     cart = request.session.get('cart', {})  # Retrieve cart from session
@@ -254,7 +233,7 @@ def cart_detail(request):
             'code': product['user_coupon']['code'],
             'discount_amount': product['user_coupon']['discount_amount'],
             'redeemed_at': product['user_coupon']['redeemed_at'],
-        } if product['user_coupon']['id'] else None  # ✅ Safe to store in session
+        } if product['user_coupon']['id'] else None  
     }
     for product in products_info
 ]
@@ -311,6 +290,7 @@ def cart_detail(request):
     # Render the cart details template with the calculated data
     return render(request, 'cart/cart_details.html', {
     'products_info': products_info,
+    'coupon_display':coupon_display,
     'user_coupon': {
         'id': user_coupon.id if user_coupon else None,
         'code': user_coupon.coupon.code if user_coupon else None,
@@ -326,9 +306,13 @@ def check_out(request):
 
 @login_required(login_url="/login")
 def address_list(request):
+    try:
+        profile = Profile.objects.get(user=request.user)
+    except Profile.DoesNotExist:
+        profile = None
+        
     addresses = Address.objects.filter(user=request.user)  # Get all addresses
     wallet = Wallet.objects.filter(user=request.user).first()
-    user_coupon = UserCoupon.objects.filter(user=request.user, redeemed_at__isnull=False).first()   
     
     # Calculate the amount to be paid after using the wallet
     total_checkout_amt = request.session.get('paid_amt_checkout', 0)
@@ -349,8 +333,7 @@ def address_list(request):
     
     order=Order.objects.filter(payment_id=request.session.get('payment_unique_id'))
     if order:
-        order.update(status=order_status)
-        order.save()
+        order.update(paid=True)
     order_data_store = Order_data_store.objects.create(
         user=request.user,
         order_id=request.session.get('payment_unique_id'),
@@ -362,6 +345,7 @@ def address_list(request):
     order_data_store.save()
 
     context = {
+        'profile':profile,
         'addresses': addresses,
         'wallet': wallet,
         'amount_to_be_paid': Amount_to_be_paid,
@@ -474,83 +458,83 @@ def razor_place_order(request):
     return render(request, 'cart/razor_placeorder.html',context)   
 
     
-    
 
 @csrf_exempt
 def place_order(request):      
-    payment=client.order.create({
-                'amount':500,
-                'currency':"INR",
-                'payment_capture':'1',
-            })
-    
-    order_id=request.session.get('payement_unique_id')
-    
-    print(order_id)
     if request.method == 'POST':
-        cart= request.session.get('cart')
-        user=request.user
-        id=request.POST.get('selected_address')
-        address=get_object_or_404(Address, pk=id, user=user)
-        amt= request.session['paid_amt_checkout']
-        payment=request.POST.get('payment')
-        wallet_refund=request.POST.get('wallet_refund')
-        
-        wallet = get_object_or_404(Wallet, user=request.user)
-        wallet.balance = float(wallet.balance)-float(wallet_refund)
-        wallet.save()
-        
-        payment_id=order_id
-        context={
-                "address":id,
-                "order_id":payment_id,
-                'amount': amt,
-                'payment': payment,
-                'payment_mode':request.POST.get('payment-method')
-                    }
-        context_razor={
-                    "address" : id,                   
-                    'amount': 500,
-                    
-                        }
-        
-        if request.POST.get('payment-method')=="cash-on-delivery" or request.POST.get('payment-method')=="buynow":
-            return render(request, 'cart/cod_placeorder.html',context)
-        
-        
-    
-        elif request.POST.get('payment-method')=="razorpay":
-            order=Order.objects.create(
-            user=user,
-            address=address,
-            amount=request.POST.get('amount'),
-            payment_id=request.session.get('payment_unique_id'),
-            payment_mode="razorpay",
-            paid=True,
-                )
-            
-            order.save()
-            for i in cart:            
-                product=Product.objects.filter(id=cart[i]['product_id'])
-                stock=product[0].stock-int(cart[i]['quantity'])
-                product.update(stock=stock)
-                if stock==0:
-                    product.update(status='Draft')
-                print(stock)
-                
-                order_item = Order_item(
+        cart = request.session.get('cart', {})
+        user = request.user
+        selected_address_id = request.POST.get('selected_address')
+        address = get_object_or_404(Address, pk=selected_address_id, user=user)
+        amt = request.session.get('paid_amt_checkout', 0)
+        payment_method = request.POST.get('payment-method')
+        wallet_refund = float(request.POST.get('wallet_refund', 0)) if request.POST.get('wallet_refund') else 0
+
+        # Fetch payment ID from session
+        payment_id = request.session.get('payment_unique_id', '')
+
+        # Handle Coupon Application
+        coupon_id = request.POST.get('couponCheckbox')
+        applied_coupon = None
+        if coupon_id:
+            coupon = get_object_or_404(Coupon, id=coupon_id)
+            if not UserCoupon.objects.filter(user=user, coupon=coupon).exists():
+                UserCoupon.objects.create(user=user, coupon=coupon)
+                applied_coupon = coupon
+                amt -= coupon.discount_amount  # Apply discount
+                amt = max(amt, 0)  # Ensure amount doesn't go negative
+
+        # Update Wallet balance if needed
+        wallet = get_object_or_404(Wallet, user=user)
+        if wallet_refund > 0 and wallet.balance >= wallet_refund:
+            wallet.balance -= wallet_refund
+            wallet.save()
+
+        context = {
+            "address": selected_address_id,
+            "order_id": payment_id,
+            "amount": amt,
+            "payment": request.POST.get('payment'),
+            "payment_mode": payment_method,
+            "applied_coupon": applied_coupon,
+        }
+
+        if payment_method in ["cash-on-delivery", "buynow"]:
+            return render(request, 'cart/cod_placeorder.html', context)
+
+        elif payment_method == "razorpay":
+            order = Order.objects.create(
+                user=user,
+                address=address,
+                amount=amt,
+                payment_id=payment_id,
+                payment_mode="razorpay",
+                paid=True,
+            )
+
+            for item in cart.values():
+                product = get_object_or_404(Product, id=item['product_id'])
+                stock = product.stock - int(item['quantity'])
+
+                product.stock = max(stock, 0)  # Ensure stock is not negative
+                if stock == 0:
+                    product.status = 'Draft'
+                product.save()
+
+                Order_item.objects.create(
                     order=order,
-                    product=cart[i]['name'],
-                    image=cart[i]['image'],
-                    quantity=cart[i]['quantity'],
-                    price=int(cart[i]['price'])* int(cart[i]['quantity']),
-                    total=request.POST.get('amount')
+                    product=item['name'],
+                    image=item['image'],
+                    quantity=item['quantity'],
+                    price=int(item['price']) * int(item['quantity']),
+                    total=amt
                 )
-                order_item.save()
-            return render(request, 'cart/razor_placeorder.html',context_razor)  
-        else:
-            return render(request, 'cart/cod_placeorder.html',context) 
-    return render(request, 'cart/thanku.html',context)
+
+            return render(request, 'cart/razor_placeorder.html', {"address": selected_address_id, "amount": amt})
+
+        return render(request, 'cart/cod_placeorder.html', context)
+
+    return render(request, 'cart/thanku.html')
 
 
 @login_required(login_url="/login")
@@ -616,7 +600,7 @@ def payment_failure(request):
         order_data_store.save()
         wallet.balance = float(wallet.balance)+float(request.session['paid_amt_checkout'])
         wallet.save()
-        del request.session['cart']
+        request.session.pop("cart", None) 
         return redirect('address_list')
     return render(request, 'cart/payment_failed.html')
 
