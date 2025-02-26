@@ -1,342 +1,447 @@
 {% extends 'main/base.html' %}
-{% load static %}
-{% load cart_tag %}
 
 {% block content %}
+{% load cart_tag %}
 <style>
-  /* Quantity container styling */
-  .cart_quantity_button {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: fit-content;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      overflow: hidden;
-  }
-  .cart-plus-minus-box {
-      width: 50px;
-      height: 30px;
-      text-align: center;
-      border: none;
-      font-size: 14px;
-      box-sizing: border-box;
-      outline: none;
-  }
-  .cart_btn {
-      width: 25px;
-      height: 30px;
-      background: none;
-      border: none;
-      font-size: 16px;
-      line-height: 1;
-      cursor: pointer;
-      text-align: center;
-      padding: 0;
-      margin: 0;
-  }
-  .cart_btn:focus {
-      outline: none;
-  }
-  .stock-info {
-      font-size: 12px;
-      color: #666;
-      margin-top: 5px;
-      display: block;
-  }
-  .stock-warning {
-      font-size: 12px;
-      color: red;
-      margin-top: 5px;
-      display: block;
-  }
-</style>
+    .payment-option {
+        display: flex;
+        align-items: center;
+        margin-bottom: 10px; /* Adds spacing between options */
+    }
+    
+    .payment-option input[type="radio"] {
+        width: 12px; /* Adjust size */
+        height: 12px; /* Adjust size */
+        margin-bottom: 12px;
+        margin-right: 10px; /* Space between radio button and text */
+        accent-color: #266BF9; /* Optional: Customize color for modern browsers */
+    }
+    
+    .payment-option label {
+        font-size: 16px; /* Slightly increased text size */
+        color:#266BF9;
+        line-height: 1.5; /* Improved readability */
+    }
+    
+        /*CHECK BOX*/
+        .checkbox-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            align-items: flex-start;
+        }
+        
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .small-checkbox {
+            width: 15px; /* Smaller size */
+            height: 15px;
+            cursor: pointer;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        p {
+            color: green;
+            font-weight: bold;
+            font-size:20px;
+            margin-left: 25px; /* Aligns label with the text */
 
-{% if request.session.cart|length < 1 %}
-  <!-- Empty Cart area start -->
-  <div class="empty-cart-area pb-100px pt-100px">
-      <div class="container">
-          <div class="row">
-              <div class="col-md-12">
-                  <div class="cart-heading">
-                      <h2>Your cart item</h2>
-                  </div>
-                  <div class="empty-text-contant text-center">
-                      <i class="pe-7s-shopbag"></i>
-                      <h3>There are no more items in your cart</h3>
-                      <a class="empty-cart-btn" href="{% url 'product' %}">
-                          <i class="fa fa-arrow-left"></i> Continue shopping
-                      </a>
-                  </div>
-              </div>
-          </div>
-      </div>
-  </div>
-  <!-- Empty Cart area end -->
+                .address-container {
+                    display: grid;
+                    grid-template-columns: repeat(2, 1fr); /* Two columns */
+                    gap: 15px; /* Space between items */
+                    margin-bottom: 20px;
+                }
+            
+                .address-item {
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                }
+            
+                .address-radio {
+                    width: 16px;
+                    height: 16px;
+                    cursor: pointer;
+                }
+            
+                .card {
+                    width: 100%;
+                    max-width: 280px;
+                    border: 1px solid #ccc;
+                    border-radius: 5px;
+                    padding: 15px;
+                    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+                }
+            
+                .card-title {
+                    color: #266BF9;
+                }
+            
+                .card-actions {
+                    display: flex;
+                    gap: 10px;
+                    margin-top: 10px;
+                }
+            
+                .edit-link {
+                    text-decoration: none;
+                    color: #266BF9;
+                }
+            
+                .delete-button {
+                    background: none;
+                    border: none;
+                    color: red;
+                    cursor: pointer;
+                }
+        
+        }
+    </style>
+
+        <!-- checkout area start -->
+
+
+
+        
+        <form method="post" action="{% url 'place_order' %}" >
+        {% csrf_token%}
+        <div class="checkout-area pt-100px pb-100px">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-7">
+                        <div class="billing-info-wrap">
+                            <h3>Billing Details</h3>
+                            
+
+                            <input type="hidden" value="{{order_id}}" name="order_id">
+                            <input type="hidden" value="{{payment}}" name="payment">
+                            <!-- Add New Address Button -->
+                            <div style="text-align: center; margin-top: 20px;">
+                            <a href="{% url 'add_address' %}" style="display: inline-block; padding: 15px 25px; font-size: 18px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);">
+                                Add New Address
+                            </a>
+                            </div>
+
+                            <!--
+                            -->
+                            <br> <br><hr>
+                         
+
+    {% if addresses %}
+
+    {% for address in addresses %}
+        <div style="display: flex; align-items: center; margin-bottom: 15px;">
+            <!-- Small Radio Button Outside the Card -->
+            <input type="radio" name="selected_address" id="address_{{ address.id }}" value="{{ address.id }}"
+                style="margin-right: 10px; width: 16px; height: 16px; cursor: pointer;"
+                {% if forloop.first %}checked{% endif %}> <!-- First address is checked by default -->
+        
+            <!-- Address Card -->
+            <div class="card" style="width: 30rem; border: 1px solid #ccc; border-radius: 5px; padding: 15px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);">
+                <div class="card-body">
+                    <h5 class="card-title" style="color:#266BF9">{{ address.firstname }} {{ address.lastname }}</h5>
+                    <p class="card-text" style="margin: 5px 0;">
+                        <!--{{ address.address }}<br>
+                        {{ address.city }}, {{ address.state }} - {{ address.postcode }}<br>
+                        {{ address.country }}<br>-->
+                        Phone: {{ address.phone }}<br>
+                        Email: {{ address.email }}
+                    </p>
+                    <div style="display: flex; gap: 10px; margin-top: 10px;">
+                        <a href="{% url 'edit_address' address.id %}" style="text-decoration: none; color: #266BF9;">Edit</a>
+                        <form action="{% url 'delete_address' address.id %}" method="post" style="display: inline;">
+                            {% csrf_token %}
+                            <button type="submit" style="background: none; border: none; color: red; cursor: pointer;">Delete</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
 {% else %}
-  <!-- Cart Area Start -->
-  <div class="cart-main-area pt-100px pb-100px">
-      <div class="container">
-          <h3 class="cart-page-title"><center>Your cart items</center></h3>
-          <div class="row">
-              <div class="col-lg-12 col-md-12 col-sm-12 col-12">
-                  <form action="#">
-                      <div class="table-content table-responsive cart-table-content">
-                          <table>
-                            <p style="color:blue; float-end"> *(Only 5 quantity can be ordered from each item)</p>
-                              <thead>
-                                  <tr>
-                                      <th>Image</th>
-                                      <th>Product Name</th>
-                                      <th>Unit Price</th>
-                                      <th>Qty</th>
-                                      <th>Subtotal</th>
-                                      <th>Action</th>
-                                  </tr>
-                              </thead>
-                              <tbody>
-                                  {% for key, value in request.session.cart.items %}
-                                  <!-- Add a data attribute for product id -->
-                                  <tr data-product-id="{{ value.product_id }}">
-                                      <td class="product-thumbnail">
-                                          <a href="#"><img class="img-responsive ml-15px" src="{{ value.image }}" alt="" /></a>
-                                      </td>
-                                      <td class="product-name">
-                                          <a href="#">{{ value.name|truncatewords:3 }}</a>
-                                      </td>
-                                      <td class="product-price-cart">
-                                          <span class="amount">{{ value.price }}</span>
-                                      </td>
-                                      <td class="cart_quantity">
-                                          <div class="cart_quantity_button">
-                                              <!-- Instead of direct links, use buttons that will trigger AJAX calls -->
-                                              <button type="button" class="cart_btn cart_quantity_up"> + </button>
-                                              <input class="cart-plus-minus-box" type="text" name="qtybutton" value="{{ value.quantity }}" readonly />
-                                              <button type="button" class="cart_btn cart_quantity_down"> - </button>
-                                          </div>
-                                          <!-- Display available stock (you should pass this value from your view) -->
-                                          <span class="stock-info">
-                                              Available: <span class="available-stock">{{ value.available_stock }}</span>
-                                          </span>
-                                          <span class="stock-warning"></span>
-                                      </td>
-                                      <td class="product-subtotal">
-                                          {{ value.price|multiply:value.quantity }}
-                                      </td>
-                                      <td class="product-remove">
-                                          <a href="{% url 'item_clear' key %}"><i class="fa fa-times"></i></a>
-                                      </td>
-                                  </tr>
-                                  {% endfor %}
-                              </tbody>
-                          </table>
-                      </div>
-                      <!-- Additional cart actions (continue shopping, clear cart, etc.) -->
-                      <div class="row">
-                          <div class="col-lg-12">
-                              <div class="cart-shiping-update-wrapper">
-                                  <div class="cart-clear">
-                                      <a href="{% url 'product' %}">Continue Shopping</a>
-                                  </div>
-                                  <div class="cart-clear">
-                                      <a href="{% url 'cart_clear' %}">Clear Shopping Cart</a>
-                                  </div>
-                              
-                              </div>
-                          </div>
-                      </div>
-                  </form>
-                  
-
-
-                  <!-- Additional checkout or coupon code sections here -->
-              </div>
-              {% if not user.user_coupons.exists %}
-                            <div class="col-lg-4 col-md-6 mb-lm-30px">
-                                <div class="discount-code-wrapper">
-                                    <div class="title-wrap">
-                                        <h4 class="cart-bottom-title section-bg-gray">Welcome Bonus</h4>
+    <div style="padding: 15px; background-color: #ffcccc; color: red; border: 1px solid red; border-radius: 5px; text-align: center;">
+        <strong>No address added yet.</strong> Please add a new address.
+    </div>
+{% endif %}
+                            
+                            
+                        </div>
+                    </div>
+                    <div class="col-lg-5 mt-md-30px mt-lm-30px ">
+                        <div class="your-order-area">
+                            <h3>Your order</h3>
+                            <div class="your-order-wrap gray-bg-4">
+                                <div class="your-order-product-info">
+                                    <div class="your-order-top">
+                                        <ul>
+                                            <li>Product</li>
+                                            <li>Total</li>
+                                        </ul>
                                     </div>
-                                    <div class="discount-code">
-                                        
-                                        <p>Use Coupon Code:<strong> {{coupon_display.code}}</strong></p>
-                                        <b>Discount: {{coupon_display.discount_amount}}% off</b>
-                                        <form method="post" action="{% url 'add_user_coupon' %}">
-                                            {% csrf_token %}
-                                            <input type="text" name="input_coupon" required />
-                                            <button class="cart-btn-2" type="submit">Apply Coupon</button>
-                                        </form>
-                                        
+                                    <div class="your-order-middle">
+                                        <ul>
+                                            {% for key,value in request.session.cart.items %}
+                                            <li><span class="order-middle-left">{{value.name | truncatewords:4}} X {{value.quantity}}</span> <span
+                                                class="order-price">{{ value.price|multiply:value.quantity }}/- </span></li>
+                                            {% endfor %}
+                                        </ul>
                                     </div>
+                                    <div class="your-order-bottom">
+                                        <ul>
+                                            <li class="your-order-shipping">Shipping Charge:</li>
+                                            <li>1070/-</li>
+                                        </ul>
+                                        <ul>
+                                            <li class="your-order-shipping">GST:</li>
+                                            <li>7%</li>
+                                        </ul>
+                                        <br>
+                                        {% if not user.user_coupons.exists %}
+                                        <ul>
+                                            <li class="your-order-shipping" style="color:#007BFF">Coupon Code: {{ coupon.code }}</li>
+                                            <li>
+                                                <form method="post" action="{% url 'add_user_coupon' %}" id="couponForm">
+                                                    {% csrf_token %}
+                                                    <input 
+                                                        type="hidden" 
+                                                        required 
+                                                        name="input_coupon" 
+                                                        placeholder="{{ coupon_display.code }}" 
+                                                        id="couponInput"
+                                                        style="background-color: #f8f9fa; border: 1px solid #ccc; padding: 8px; border-radius: 5px; width: 200px; color: #333;"
+                                                    />
+                                                    <button class="cart-btn-2" type="submit">Apply Coupon</button>
+                                                </form>
+                                            </li>
+                                        </ul>
+                                    {% endif %}
+                                    
+                                    </div>
+                                  
                                 </div>
-                            </div>
-                            {% else %}
-                            <div class="col-lg-4 col-md-6 mb-lm-30px">
-                                <div class="discount-code-wrapper">
-                                    <div class="title-wrap">
-                                        <h4 class="cart-bottom-title section-bg-gray">Welcome Bonus Coupon</h4>
-                                        
-                                    </div>
-                                    <div class="discount-code">
-                                        <p>Coupon Used.</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {% endif %}
-                            <div class="col-lg-4 col-md-12 mt-md-30px">
-                                <div class="grand-totall">
-                                    <div class="title-wrap">
-                                        <h4 class="cart-bottom-title section-bg-gary-cart">Cart Total</h4>
-                                    </div>
-                                    <h5>Total products <span id="total-price">{{ total_price }}/-</span></h5>
-
-                                            <div class="total-shipping">
-                                                <h5>Total</h5>
-                                                <ul>
-                                                    <li>Shipping Charge: <span id="shipping-charge">1070/-</span></li>
-                                                    <li>GST (7% of Total Price): <span id="gst">{{ gst }}/-</span></li>
-                                                    {% if not user.user_coupons.exists %}
-                                                        <li>Coupon of {{coupon_display.discount_amount}}% added: <span>No</span></li>
-                                                    {% endif %}
-                                                </ul>
+                                <div class="payment-method">
+                                    <div class="payment-accordion element-mrg">
+                                        <div id="faq" class="panel-group">
+                                            <div class="panel panel-default single-my-account m-0">
+                                                
+                                                
                                             </div>
 
-                                            <h4 class="grand-totall-title">Grand Total <span id="grand-total">{{ grand_total }}/-</span></h4>
-                                            <a href="{% url 'address_list' %}">Proceed to Checkout</a>
 
+
+                                            <div class="panel panel-default single-my-account m-0">
+                                                <div class="panel panel-default single-my-account m-0">
+                                                    <div class="panel-heading my-account-title">
+                                                        
+                                                        <div class="payment-option">
+                                                            <input type="radio" id="cash-on-delivery" name="payment-method" value="cash-on-delivery">
+                                                            <label for="cash-on-delivery">Cash on Delivery</label>
+                                                        </div>
+                                                        <div class="payment-option">
+                                                            <input type="radio" id="razorpay" name="payment-method" value="razorpay">
+                                                            <label for="razorpay">Online Payment</label>
+                                                        </div>
+                                                        <div class="payment-option">
+                                                            <input type="radio" id="buynow" name="payment-method" value="buynow">
+                                                            <label for="razorpay">Pay by Wallet</label>
+                                                        </div>
+
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="checkbox-container">
+                                                <label class="checkbox-label">
+                                                    <input type="checkbox" id="agreeCheckbox" class="small-checkbox" 
+                                                        {% if wallet.balance > 0 %}checked{% endif %}>
+                                                    <span>Wallet amount available: 
+                                                        <strong style="color:rgb(64, 72, 214);">{{ wallet.balance }}</strong>
+                                                        
+                                                    </span>
+                                                </label>
+                                                <p id="messageLabel" class="hidden">
+                                                    The Amount to be Paid :  
+                                                    <strong style="color:#007BFF; font-size:22px">{{ amount_to_be_paid }}</strong>
+                                                </p>
+                                            </div>
+                                            
+                                            <li>
+                                                <input style="text:right" type="hidden" name="wallet_refund" 
+                                                    value="{{ wallet_refund }}" readonly>
+                                            </li>
+                                            <div class="your-order-total">
+                                                <ul>
+                                                    <li id="grandtotal_label" class="order-total" style="color: green; font-weight: bold; font-size:22px;">
+                                                        Total + GST
+                                                      </li>
+                                                    <li>
+                                                        <input id="grandtotal" 
+                                                               style="text-align: right; color: blue; font-weight: bold; font-size:22px;" 
+                                                               name="amount" 
+                                                               value="{{ request.session.paid_amt_checkout }}" 
+                                                               readonly>
+                                                      </li>
+                                                    
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
+                            </div>
+                            <div class="Place-order mt-25">
+                                
+                            </div>
+                            <div class="Place-order mt-25">
+                                <a class="btn-hover text-light"><button type="submit" class= "text-light">Continue</button></a>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        <!-- Cart Area End -->
-
-
-          </div>
-
-
-          
-      </div>
-      
-  </div>
-  <!-- Cart Area End -->
-{% endif %}
-
-<!-- Real-Time Quantity & Stock Update JavaScript -->
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        <!-- checkout area end -->
+    </form>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const checkbox = document.getElementById('agreeCheckbox');
+            const messageLabel = document.getElementById('messageLabel');
+            const grandtotal = document.getElementById('grandtotal');
+            const grandtotal_label = document.getElementById('grandtotal_label');
     
-        function updateCartTotals(discount = 0) {
-            let totalPrice = 0;
+            // Payment options
+            const codOption = document.getElementById('cash-on-delivery');
+            const razorpayOption = document.getElementById('razorpay');
+            const buynowOption = document.getElementById('buynow');
     
-            // Calculate total price from product subtotals
-            document.querySelectorAll('.product-subtotal').forEach(item => {
-                let price = parseFloat(item.textContent.replace('/-', '').trim());
-                totalPrice += isNaN(price) ? 0 : price;
-            });
+            // Amount to be paid after wallet deduction
+            let amountToBePaid = parseFloat("{{ amount_to_be_paid }}");  // Convert to float for comparison
     
-            // GST (7% of total price)
-            let gst = totalPrice * 0.07;
+            function updatePaymentOptions() {
+                if (amountToBePaid === 0) {
+                    // Enable only Buy Now, disable & fade out the others
+                    buynowOption.checked = true;
+                    buynowOption.disabled = false;
+                    codOption.disabled = true;
+                    razorpayOption.disabled = true;
     
-            // Shipping charge (fixed)
-            let shippingCharge = 1070;
+                    codOption.parentElement.style.opacity = "0.5";  // Fade effect
+                    razorpayOption.parentElement.style.opacity = "0.5";
+                    buynowOption.parentElement.style.opacity = "1";
+                } else {
+                    // Enable COD & Razorpay, disable & fade out Buy Now
+                    razorpayOption.checked = true;
+                    buynowOption.disabled = true;
+                    codOption.disabled = false;
+                    razorpayOption.disabled = false;
     
-            // Apply coupon discount if available
-            let discountAmount = (discount / 100) * totalPrice;
-            let finalTotal = totalPrice - discountAmount;
-    
-            // Grand total calculation
-            let grandTotal = finalTotal + gst + shippingCharge;
-    
-            // Update UI
-            document.getElementById('total-price').textContent = `${totalPrice.toFixed(2)}/-`;
-            document.getElementById('gst').textContent = `${gst.toFixed(2)}/-`;
-            document.getElementById('grand-total').textContent = `${grandTotal.toFixed(2)}/-`;
-    
-            // Show applied coupon discount
-            if (discount > 0) {
-                document.getElementById('coupon-discount').textContent = `Coupon of ${discount}% applied: Yes`;
-            }
-        }
-    
-        function updateQuantityOnServer(productId, newQuantity, productRow) {
-            fetch('/cart/update_quantity/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': csrfToken,
-                },
-                body: JSON.stringify({ product_id: productId, quantity: newQuantity })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    productRow.querySelector('.cart-plus-minus-box').value = data.new_quantity;
-                    productRow.querySelector('.product-subtotal').textContent = `${data.subtotal}/-`;
-                    updateCartTotals();  // Recalculate totals
+                    buynowOption.parentElement.style.opacity = "0.5";  // Fade effect
+                    codOption.parentElement.style.opacity = "1";
+                    razorpayOption.parentElement.style.opacity = "1";
                 }
-            })
-            .catch(error => console.error('Error updating quantity:', error));
-        }
+            }
     
-        // Increase quantity event
-        document.querySelectorAll('.cart_quantity_up').forEach(button => {
-            button.addEventListener('click', function (event) {
-                event.preventDefault();
-                const productRow = event.target.closest("tr");
-                const input = productRow.querySelector(".cart-plus-minus-box");
-                const newQuantity = parseInt(input.value, 10) + 1;
-                updateQuantityOnServer(productRow.dataset.productId, newQuantity, productRow);
+            checkbox.addEventListener('change', function () {
+                if (checkbox.checked) {
+                    messageLabel.classList.remove('hidden');
+                    grandtotal.classList.add('hidden');
+                    grandtotal_label.classList.add('hidden');
+                } else {
+                    messageLabel.classList.add('hidden');
+                    grandtotal.classList.remove('hidden');
+                    grandtotal_label.classList.remove('hidden');
+                }
             });
+    
+            updatePaymentOptions();  // Call on page load to set the correct state
         });
-    
-        // Decrease quantity event
-        document.querySelectorAll('.cart_quantity_down').forEach(button => {
-            button.addEventListener('click', function (event) {
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            
+            document.querySelector('.cart-btn-2').addEventListener('click', function(event) {
                 event.preventDefault();
-                const productRow = event.target.closest("tr");
-                const input = productRow.querySelector(".cart-plus-minus-box");
-                const newQuantity = Math.max(1, parseInt(input.value, 10) - 1);
-                updateQuantityOnServer(productRow.dataset.productId, newQuantity, productRow);
-            });
-        });
-    
-        // Coupon application event
-        const couponForm = document.querySelector('form[action="{% url 'add_user_coupon' %}"]');
-        if (couponForm) {
-            couponForm.addEventListener('submit', function (event) {
-                event.preventDefault();
-                const inputCoupon = document.querySelector('input[name="input_coupon"]').value;
-    
-                fetch('{% url "add_user_coupon" %}', {
-                    method: 'POST',
+                
+                const inputCoupon = document.querySelector('[name="input_coupon"]').value;
+                
+                fetch("{% url 'add_user_coupon' %}", {
+                    method: "POST",
                     headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                        'X-CSRFToken': csrfToken,
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrfToken,
                     },
-                    body: new URLSearchParams({ input_coupon: inputCoupon })
+                    body: JSON.stringify({ input_coupon: inputCoupon })
                 })
                 .then(response => response.json())
                 .then(data => {
-                    if (data.success) {
-                        updateCartTotals(data.discount_amount);  // Apply discount
-                        document.querySelector('.discount-code-wrapper').style.display = 'none'; // Hide coupon section
-                    } else {
-                        alert("Invalid Coupon");
+                    if (data.message) {
+                        alert(data.message);  // Show success message
+                        document.querySelector('.grand-totall-title span').textContent = data.new_total + "/-"; // Update total
+                        document.querySelector('.discount-code p').textContent = `Coupon Used: ${data.coupon.code} (${data.coupon.discount_amount}% off)`;
+                    } else if (data.error) {
+                        alert(data.error);  // Show error message
                     }
                 })
-                .catch(error => console.error('Error applying coupon:', error));
+                .catch(error => {
+                    console.error("Error:", error);
+                    alert("Failed to apply coupon. Please try again.");
+                });
             });
-        }
-    
-        // Initial total calculation on page load
-        updateCartTotals();
-    });
-    
+        });
+        
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    function showCartAlert() {
+        Swal.fire({
+            title: "Cart Details",
+            html: `
+                <div style="text-align: left;">
+                    <strong>Total:</strong> ₹0 <br>
+                    <strong>Shipping Charge:</strong> ₹1070 <br>
+                    <strong>GST (7%):</strong> ₹0 <br>
+                    <strong>Grand Total:</strong> ₹0
+                </div>
+            `,
+            icon: "info",
+            confirmButtonText: "OK"
+        });
+    }
+</script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const couponCheckbox = document.getElementById('couponCheckbox');
+        const grandTotalInput = document.getElementById('grandtotal');
+        const originalGrandTotal = parseFloat(grandTotalInput.value); // Store the original grand total
+        const amountLabel = document.getElementById('messageLabel'); // To update the amount to be paid
+    
+        couponCheckbox.addEventListener('change', function () {
+            if (couponCheckbox.checked) {
+                // Apply 10% discount
+                let discountedTotal = originalGrandTotal * 0.9;
+                grandTotalInput.value = discountedTotal.toFixed(2); // Update value with 2 decimal places
+                
+                // Update the displayed amount
+                amountLabel.innerHTML = `The Amount to be Paid: <strong style="color:#007BFF; font-size:22px">${discountedTotal.toFixed(2)}</strong>`;
+            } else {
+                // Restore original total
+                grandTotalInput.value = originalGrandTotal.toFixed(2);
+                
+                // Reset the displayed amount
+                amountLabel.innerHTML = `The Amount to be Paid: <strong style="color:#007BFF; font-size:22px">${originalGrandTotal.toFixed(2)}</strong>`;
+            }
+        });
+    });
+</script>
+
     
 {% endblock %}
