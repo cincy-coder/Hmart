@@ -102,7 +102,7 @@
             </div>
 
             <!-- Categories Chart -->
-            <!--<div class="col-md-6 mb-4">
+            <div class="col-md-6 mb-4">
                 <div class="card shadow">
                     <div class="card-header">
                         <h3 class="h5 mb-0">Sales by Category</h3>
@@ -113,10 +113,10 @@
                         </div>
                     </div>
                 </div>
-            </div>-->
+            </div>
 
             <!-- Brands Chart -->
-            <!--<div class="col-md-6 mb-4">
+            <div class="col-md-6 mb-4">
                 <div class="card shadow">
                     <div class="card-header">
                         <h3 class="h5 mb-0">Sales by Brand</h3>
@@ -128,7 +128,7 @@
                     </div>
                 </div>
             </div>
-        </div>-->
+        </div>
     </section>
 </div>
 
@@ -148,6 +148,17 @@
     </div>
 </div>
 {% endif %}
+
+
+</div>
+
+
+
+
+
+
+
+
 
 <!-- Charts Initialization -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -239,7 +250,7 @@
         options: chartOptions
     });
 
-    /*new Chart(document.getElementById('categoriesChart'), {
+    new Chart(document.getElementById('categoriesChart'), {
         type: 'bar',
         data: {
             labels: [{% for category in best_selling_categories %}"{{ category.product }}",{% endfor %}],
@@ -254,9 +265,9 @@
             }]
         },
         options: chartOptions
-    });*/
+    });
 
-    /*new Chart(document.getElementById('brandsChart'), {
+    new Chart(document.getElementById('brandsChart'), {
         type: 'bar',
         data: {
             labels: [{% for brand in best_selling_brands %}"{{ brand.product }}",{% endfor %}],
@@ -271,6 +282,6 @@
             }]
         },
         options: chartOptions
-    });*/
+    });
 </script>
 {% endblock %}
