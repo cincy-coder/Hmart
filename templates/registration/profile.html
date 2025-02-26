@@ -90,12 +90,12 @@
                                                     <div class="card-body">
                                                         <p><strong>Name:</strong> {{ user.first_name }} {{ user.last_name }}</p>
                                                         <p><strong>Email:</strong> {{ user.email }}</p>
-                                                        
+                                                        <p><strong>Phone:</strong> {{ profile.phone }}</p>
                                                         <p><strong>Address:</strong> {{ profile.address }}</p>
                                                         <p><strong>City:</strong> {{ profile.city }}</p>
                                                         <p><strong>State:</strong> {{ profile.state }}</p>
                                                         <p><strong>Postcode:</strong> {{ profile.postcode }}</p>
-                                                        <p><strong>Phone:</strong> {{ profile.phone }}</p>
+                                                        
                                                         
                                                         
                                                         <div class="d-flex justify-content-between mt-4">
@@ -194,13 +194,10 @@
 
                                     <div class="tab-pane" id="address">
                                         <h3>Shipping Address</h3>
-                                        <div style="text-align: center; margin-top: 20px;">
-                                            <a href="{% url 'add_address' %}" style="display: inline-block; padding: 15px 25px; font-size: 18px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);">
-                                                Add New Address
-                                            </a>
-                                            </div>
+                                        
                                         {% if addresses %}
                                             <div class="row">
+
                                                 {% for address in addresses %}
                                                     <div class="col-md-6 mb-4">
                                                         <div class="card" style="border: 1px solid #ccc; border-radius: 5px; padding: 15px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);">
@@ -226,10 +223,17 @@
                                                 {% endfor %}
                                             </div>
                                         {% else %}
-                                            <!-- No Address Found Message -->
+
+                                            No Address Found 
                                         
 
                                         {% endif %}
+                                        
+                                        <div style="text-align: center; margin-top: 20px;">
+                                            <a href="{% url 'add_address' %}" style="display: inline-block; padding: 15px 25px; font-size: 18px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);">
+                                                Add New Address
+                                            </a>
+                                            </div>
                                     </div>
 
 
