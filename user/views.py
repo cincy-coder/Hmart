@@ -1,11 +1,14 @@
 from django.shortcuts import render,redirect, get_object_or_404
 from store.models import *
+from django.db.models import Count
 from django.conf import settings
 from django.core.mail import send_mail
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate,login,logout
 from django.contrib import messages
 import random
+from django.core.exceptions import ValidationError
+from django.core.validators import validate_email
 from django.utils.timezone import now
 from django.http import JsonResponse
 from django.core.cache import cache
@@ -93,7 +96,7 @@ def ADMIN_HOME(request):
     Admin dashboard view showing various metrics and charts.
     Includes user counts, sales data, and filtered analytics based on date range.
     """
-    
+   
     def get_date_range():
         """Helper function to get and validate date range from request"""
         start_date = request.GET.get('start_date')
@@ -112,7 +115,7 @@ def ADMIN_HOME(request):
         """Helper function to calculate sales metrics within date range"""
         start_date, end_date = date_range
         filtered_orders = Order.objects.filter(date__range=[start_date, end_date])
-        
+       
         return {
     'best_selling_products': Order_item.objects.filter(order__in=filtered_orders)
         .values("product")  
@@ -129,7 +132,7 @@ def ADMIN_HOME(request):
         .annotate(total_quantity=Sum("quantity"))
         .order_by("-total_quantity")[:10]
 }
-
+    
     # Get basic metrics
     user_count = User.objects.count()
     total_amount = Order_data_store.objects.aggregate(Sum('paid_amt'))
@@ -157,7 +160,8 @@ def ADMIN_HOME(request):
         'start_date': date_range[0],
         'end_date': date_range[1],
         #'total_visitors': total_visitors,
-        'product_count':product_count
+        'product_count':product_count,
+       
     }
 
     return render(request, 'admin_temp/admin_index.html', context)
@@ -174,69 +178,52 @@ def HandleRegister(request):
         email = request.POST.get('email')
         pass1 = request.POST.get('pass1')
         pass2 = request.POST.get('pass2')
-
+        
         # Check for duplicate username
         if User.objects.filter(username=username).exists():
             messages.error(request, 'Username already exists.')
             return redirect('register')
         
-        # Check for duplicate email   
-        elif User.objects.filter(email=email).exists():
+        # Check for duplicate email
+        if User.objects.filter(email=email).exists():
             messages.error(request, 'Email is already registered.')
             return redirect('register')
-
+        
         # Check if passwords match
-        elif pass1 != pass2:
+        if pass1 != pass2:
             messages.error(request, 'Passwords do not match.')
             return redirect('register')
         
-        else:
-            try:
-                # Create and save the user
-                user = User.objects.create_user(
-                    email=email,
-                    username=username,
-                    password=pass1,
-                    first_name=first_name,
-                    last_name=last_name
-                )
-                user.save()
+        # Create and save the user
+        user = User.objects.create_user(
+            email=email,
+            username=username,
+            password=pass1,
+            first_name=first_name,
+            last_name=last_name
+        )
+        user.save()
 
-                # Create the wallet for the new user
-                wallet = Wallet.objects.create(
-                    user=user,
-                    balance=0
-                )
-                wallet.save()
-
-                messages.success(request, 'Registration successful! You can now log in.')
-                return redirect('login')  # Redirect to the login page after successful registration
-            
-            except IntegrityError as e:
-                # Handle any potential IntegrityError (e.g., duplicate wallet creation)
-                messages.error(request, 'Error occurred while creating wallet. Please try again.')
-                print(f"IntegrityError: {e}")
-                return redirect('register')
-
+        # Create a wallet for the new user
+        try:
+            wallet, created = Wallet.objects.get_or_create(user=user, defaults={'balance': 0})
+            if not created:
+                messages.warning(request, 'A wallet already exists for this user.')
+        except IntegrityError:
+            messages.error(request, 'Failed to create a wallet for this user.')
+            return redirect('register')
+        
+        messages.success(request, 'Registration successful! You can now log in.')
+        return redirect('login')  # Redirect to the login page after successful registration
+    
     return render(request, 'registration/auth.html')
 
 
-User = get_user_model()
 
 @receiver(post_save, sender=User)
 def create_user_wallet(sender, instance, created, **kwargs):
-    if created:
-        print("------------------------Wallet creation------------------------------")
-        try:
-            # Using get_or_create ensures that a wallet is created only once for a user
-            wallet, created = Wallet.objects.get_or_create(user=instance, defaults={'balance': 0})
-            
-            if not created:
-                print(f"Wallet already exists for user {instance.username}")
-
-        except IntegrityError as e:
-            # Handle any potential IntegrityError (e.g., duplicate wallet creation)
-            print(f"IntegrityError occurred while creating wallet for user {instance.username}: {e}")
+    if created and not Wallet.objects.filter(user=instance).exists():
+        Wallet.objects.create(user=instance, balance=0)
 
 
 def HandleLogin(request):
@@ -368,7 +355,9 @@ def add_edit_profile(request):
             request.user.save()
             
             profile.save()
+            
             return redirect('profile')  # Redirect to profile page after saving
+        
     else:
         form = ProfileForm(instance=profile)
 
@@ -585,4 +574,8 @@ def contact_us_detail(request, contact_id):
         'subject': contact.subject,
         'message': contact.message,
         'date': contact.date.strftime('%Y-%m-%d %H:%M'),
+
     })
+
+    
+
