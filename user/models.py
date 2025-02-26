@@ -3,7 +3,6 @@ from django.contrib.auth.models import User
 import uuid
 from datetime import datetime, timedelta
 
-# Create your models here.
 
 class PasswordReset(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -16,11 +15,11 @@ class PasswordReset(models.Model):
     
 class  Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='Profile')
-    country = models.CharField(max_length=100)
-    address = models.CharField(max_length=600)
-    city = models.CharField(max_length=100)
-    state = models.CharField(max_length=100)
-    postcode = models.CharField(max_length=10)
+    country = models.CharField(max_length=100,null=True)
+    address = models.CharField(max_length=600,null=True)
+    city = models.CharField(max_length=100,null=True)
+    state = models.CharField(max_length=100,null=True)
+    postcode = models.CharField(max_length=10,null=True)
     phone = models.CharField(max_length=20)
     date = models.DateField(auto_now_add=True)
     
