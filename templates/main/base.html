@@ -619,7 +619,7 @@
                                 <div class="swiper-wrapper">
                                     {% for img in i.images_set.all %}
                                     <div class="swiper-slide">
-                                        <img class="img-responsive m-auto" src="{{img.image}}" alt="">
+                                        <img class="img-responsive m-auto" src="{{img.image.url}}" alt="">
                                     </div>
                                     {% endfor %}
                                 </div>
@@ -629,7 +629,7 @@
                                     {% for img in i.images_set.all %}
                                     <div class="swiper-slide">
                                         
-                                        <img class="img-responsive m-auto" src="{{img.image}}" alt="">
+                                        <img class="img-responsive m-auto" src="{{img.image.url}}" alt="">
                                         
                                     </div>
                                     {% endfor %}
@@ -688,7 +688,7 @@
                                         
                                     </ul>
                                 </div>
-                                <div class="pro-details-quality">
+                                <!---<div class="pro-details-quality">
                                     <div class="cart-plus-minus">
                                         <input class="cart-plus-minus-box" type="text" name="qtybutton" value="1" />
                                     </div>
@@ -701,7 +701,7 @@
                                 </div>
                                 <div class="payment-img">
                                     <a href="#"><img src="assets/images/icons/payment.png" alt=""></a>
-                                </div>
+                                </div>-->
                             </div>
                         </div>
                     </div>
@@ -807,6 +807,7 @@
 
     <!--Main JS (Common Activation Codes)-->
     <script src="{% static 'assets/js/main.js'%}"></script>
+   
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <script>
         var options = {
@@ -816,7 +817,7 @@
             "description": "Test Transaction",
             "image": "https://example.com/your_logo",
             "order_id": "{{order_id}}",
-            "callback_url": "http://127.0.0.1:8000/thanku", // Optional if handling manually
+            "callback_url": "http://127.0.0.1:8000/handle-payment", // Optional if handling manually
             "prefill": {
                 "name": "{{user.firstname}} {{user.lastname}}",
                 "email": "{{user.email}}",
@@ -844,11 +845,12 @@
                     success: function(data) {
                         // Redirect or show success message
                         alert("Payment successful!");
-                        window.location.href = "http://127.0.0.1:8000/handle-payment";
+                        window.location.href = "http://127.0.0.1:8000/thanku";
                     },
                     error: function(error) {
                         // Handle errors
                         alert("Payment failed! Please try again.");
+                        window.location.href = "http://127.0.0.1:8000/payment-failure";
                     }
                 });
             },
