@@ -50,33 +50,6 @@
       margin-top: 5px;
       display: block;
   }
-  /* Styling for total amount */
-  .cart-total {
-      font-size: 18px;
-      font-weight: bold;
-      margin-top: 20px;
-      text-align: right;
-  }
-    /* Styling for total amount */
-    .cart-total {
-        font-size: 18px;
-        font-weight: bold;
-        margin-top: 20px;
-        text-align: right;
-        color: red; /* Highlighting total amount */
-    }
-    .cart-gst {
-        font-size: 16px;
-        font-weight: bold;
-        text-align: right;
-        color: #333; /* Default text color */
-    }
-    .cart-grand-total {
-        font-size: 20px;
-        font-weight: bold;
-        text-align: right;
-        color: darkgreen; /* Highlighting grand total */
-    }
 </style>
 
 {% if request.session.cart|length < 1 %}
@@ -104,12 +77,13 @@
   <!-- Cart Area Start -->
   <div class="cart-main-area pt-100px pb-100px">
       <div class="container">
-          <h3 class="cart-page-title">Your cart items</h3>
+          <h3 class="cart-page-title"><center>Your cart items</center></h3>
           <div class="row">
               <div class="col-lg-12 col-md-12 col-sm-12 col-12">
                   <form action="#">
                       <div class="table-content table-responsive cart-table-content">
                           <table>
+                            <p style="color:blue; float-end"> *(Only 5 quantity can be ordered from each item)</p>
                               <thead>
                                   <tr>
                                       <th>Image</th>
@@ -167,206 +141,202 @@
                                   <div class="cart-clear">
                                       <a href="{% url 'cart_clear' %}">Clear Shopping Cart</a>
                                   </div>
-                                  <div class="cart-clear">
-                                      <a href="{% url 'address_list' %}">Proceed to Checkout</a>
-                                  </div>
+                              
                               </div>
                           </div>
                       </div>
                   </form>
-                  <!-- Display the cart total -->
-               
-                  <div class="cart-total" id="cart-total">Total: ₹0</div>
-                  <div class="cart-shipping-Charge" id="cart-Sc" style="float: right;">
-                    <strong>Shipping Charge: 1070</strong>
-                </div><br>
-                    <div class="cart-gst" id="cart-gst">GST (7%): ₹0</div>
-                <div class="cart-grand-total" id="cart-grand-total">Grand Total: ₹0</div>
+                  
 
 
-                
+                  <!-- Additional checkout or coupon code sections here -->
               </div>
+              {% if not user.user_coupons.exists %}
+                            <div class="col-lg-4 col-md-6 mb-lm-30px">
+                                <div class="discount-code-wrapper">
+                                    <div class="title-wrap">
+                                        <h4 class="cart-bottom-title section-bg-gray">Welcome Bonus</h4>
+                                    </div>
+                                    <div class="discount-code">
+                                        
+                                        <p>Use Coupon Code:<strong> {{coupon_display.code}}</strong></p>
+                                        <b>Discount: {{coupon_display.discount_amount}}% off</b>
+                                        <form method="post" action="{% url 'add_user_coupon' %}">
+                                            {% csrf_token %}
+                                            <input type="text" name="input_coupon" required />
+                                            <button class="cart-btn-2" type="submit">Apply Coupon</button>
+                                        </form>
+                                        
+                                    </div>
+                                </div>
+                            </div>
+                            {% else %}
+                            <div class="col-lg-4 col-md-6 mb-lm-30px">
+                                <div class="discount-code-wrapper">
+                                    <div class="title-wrap">
+                                        <h4 class="cart-bottom-title section-bg-gray">Welcome Bonus Coupon</h4>
+                                        
+                                    </div>
+                                    <div class="discount-code">
+                                        <p>Coupon Used.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {% endif %}
+                            <div class="col-lg-4 col-md-12 mt-md-30px">
+                                <div class="grand-totall">
+                                    <div class="title-wrap">
+                                        <h4 class="cart-bottom-title section-bg-gary-cart">Cart Total</h4>
+                                    </div>
+                                    <h5>Total products <span id="total-price">{{ total_price }}/-</span></h5>
+
+                                            <div class="total-shipping">
+                                                <h5>Total</h5>
+                                                <ul>
+                                                    <li>Shipping Charge: <span id="shipping-charge">1070/-</span></li>
+                                                    <li>GST (7% of Total Price): <span id="gst">{{ gst }}/-</span></li>
+                                                    {% if not user.user_coupons.exists %}
+                                                        <li>Coupon of {{coupon_display.discount_amount}}% added: <span>No</span></li>
+                                                    {% endif %}
+                                                </ul>
+                                            </div>
+
+                                            <h4 class="grand-totall-title">Grand Total <span id="grand-total">{{ grand_total }}/-</span></h4>
+                                            <a href="{% url 'address_list' %}">Proceed to Checkout</a>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Cart Area End -->
+
+
           </div>
+
+
+          
       </div>
+      
   </div>
   <!-- Cart Area End -->
-
 {% endif %}
 
-<!-- Real-Time Quantity & Stock Update JavaScript and Total Update -->
+<!-- Real-Time Quantity & Stock Update JavaScript -->
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Retrieve CSRF token
-    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-
-    // Function to update the quantity on the server
-    function updateQuantityOnServer(productId, newQuantity, productRow) {
-        fetch('/cart/update_quantity/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': csrfToken,
-            },
-            body: JSON.stringify({
-                product_id: productId,
-                quantity: newQuantity
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            // If update is successful, update the UI values
-            if (data.success) {
-                productRow.querySelector('.cart-plus-minus-box').value = data.new_quantity;
-                productRow.querySelector('.product-subtotal').textContent = data.subtotal + '/-';
-
-                // Update available stock if provided
-                const stockDisplay = productRow.querySelector('.available-stock');
-                if (stockDisplay && data.available_stock !== undefined) {
-                    stockDisplay.textContent = data.available_stock;
-                }
-                // Clear any previous warnings
-                const warningElem = productRow.querySelector('.stock-warning');
-                if (warningElem) {
-                    warningElem.textContent = '';
-                }
-                // Update cart total after quantity change
-                updateCartTotal();
-            } else {
-                // Show error message if the update failed
-                const warningElem = productRow.querySelector('.stock-warning');
-                if (warningElem) {
-                    warningElem.textContent = data.message;
-                }
+    document.addEventListener("DOMContentLoaded", function () {
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    
+        function updateCartTotals(discount = 0) {
+            let totalPrice = 0;
+    
+            // Calculate total price from product subtotals
+            document.querySelectorAll('.product-subtotal').forEach(item => {
+                let price = parseFloat(item.textContent.replace('/-', '').trim());
+                totalPrice += isNaN(price) ? 0 : price;
+            });
+    
+            // GST (7% of total price)
+            let gst = totalPrice * 0.07;
+    
+            // Shipping charge (fixed)
+            let shippingCharge = 1070;
+    
+            // Apply coupon discount if available
+            let discountAmount = (discount / 100) * totalPrice;
+            let finalTotal = totalPrice - discountAmount;
+    
+            // Grand total calculation
+            let grandTotal = finalTotal + gst + shippingCharge;
+    
+            // Update UI
+            document.getElementById('total-price').textContent = `${totalPrice.toFixed(2)}/-`;
+            document.getElementById('gst').textContent = `${gst.toFixed(2)}/-`;
+            document.getElementById('grand-total').textContent = `${grandTotal.toFixed(2)}/-`;
+    
+            // Show applied coupon discount
+            if (discount > 0) {
+                document.getElementById('coupon-discount').textContent = `Coupon of ${discount}% applied: Yes`;
             }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            const warningElem = productRow.querySelector('.stock-warning');
-            if (warningElem) {
-                warningElem.textContent = 'Error updating quantity. Please try again.';
-            }
-        });
-    }
-
-    // Increase quantity handler
-    function increaseQuantity(event) {
-        event.preventDefault();
-        const productRow = event.target.closest("tr");
-        const input = productRow.querySelector(".cart-plus-minus-box");
-        const currentQuantity = parseInt(input.value, 10);
-        const newQuantity = currentQuantity + 1;
-        const productId = productRow.dataset.productId;
-        // Update UI immediately (optional)
-        input.value = newQuantity;
-        // Send the updated quantity to the server
-        updateQuantityOnServer(productId, newQuantity, productRow);
-    }
-
-    // Decrease quantity handler
-    function decreaseQuantity(event) {
-        event.preventDefault();
-        const productRow = event.target.closest("tr");
-        const input = productRow.querySelector(".cart-plus-minus-box");
-        const currentQuantity = parseInt(input.value, 10);
-        if (currentQuantity > 1) {
-            const newQuantity = currentQuantity - 1;
-            const productId = productRow.dataset.productId;
-            // Update UI immediately (optional)
-            input.value = newQuantity;
-            // Send the updated quantity to the server
-            updateQuantityOnServer(productId, newQuantity, productRow);
         }
-    }
-
-    // Attach event listeners to the quantity buttons
-    document.querySelectorAll('.cart_quantity_up').forEach(button => {
-        button.addEventListener('click', increaseQuantity);
-    });
-    document.querySelectorAll('.cart_quantity_down').forEach(button => {
-        button.addEventListener('click', decreaseQuantity);
-    });
-
-    // Function to update the cart total from the server
-    function updateCartTotal() {
-        fetch('/cart/total/')
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                document.getElementById('cart-total').innerText = `Total: ₹${data.total_amount}`;
-            }
-        })
-        .catch(error => {
-            console.error('Error fetching cart total:', error);
-        });
-    }
-
-    // Update the total amount when the page loads
-    updateCartTotal();
-});
-</script>
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Function to update the cart total and GST
-        function updateCartTotal() {
-            fetch('/cart/total/')
+    
+        function updateQuantityOnServer(productId, newQuantity, productRow) {
+            fetch('/cart/update_quantity/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken,
+                },
+                body: JSON.stringify({ product_id: productId, quantity: newQuantity })
+            })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    let total = parseFloat(data.total_amount);
-                    let gst = total * 0.07;  // Calculating 7% GST
-                    let grandTotal = total + gst + 1070;
-    
-                    document.getElementById('cart-total').innerText = `Total: ₹${total.toFixed(2)}`;
-                    document.getElementById('cart-gst').innerText = `GST (7%): ₹${gst.toFixed(2)}`;
-                    document.getElementById('cart-grand-total').innerText = `Grand Total: ₹${grandTotal.toFixed(2)}`;
+                    productRow.querySelector('.cart-plus-minus-box').value = data.new_quantity;
+                    productRow.querySelector('.product-subtotal').textContent = `${data.subtotal}/-`;
+                    updateCartTotals();  // Recalculate totals
                 }
             })
-            .catch(error => {
-                console.error('Error fetching cart total:', error);
+            .catch(error => console.error('Error updating quantity:', error));
+        }
+    
+        // Increase quantity event
+        document.querySelectorAll('.cart_quantity_up').forEach(button => {
+            button.addEventListener('click', function (event) {
+                event.preventDefault();
+                const productRow = event.target.closest("tr");
+                const input = productRow.querySelector(".cart-plus-minus-box");
+                const newQuantity = parseInt(input.value, 10) + 1;
+                updateQuantityOnServer(productRow.dataset.productId, newQuantity, productRow);
+            });
+        });
+    
+        // Decrease quantity event
+        document.querySelectorAll('.cart_quantity_down').forEach(button => {
+            button.addEventListener('click', function (event) {
+                event.preventDefault();
+                const productRow = event.target.closest("tr");
+                const input = productRow.querySelector(".cart-plus-minus-box");
+                const newQuantity = Math.max(1, parseInt(input.value, 10) - 1);
+                updateQuantityOnServer(productRow.dataset.productId, newQuantity, productRow);
+            });
+        });
+    
+        // Coupon application event
+        const couponForm = document.querySelector('form[action="{% url 'add_user_coupon' %}"]');
+        if (couponForm) {
+            couponForm.addEventListener('submit', function (event) {
+                event.preventDefault();
+                const inputCoupon = document.querySelector('input[name="input_coupon"]').value;
+    
+                fetch('{% url "add_user_coupon" %}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-CSRFToken': csrfToken,
+                    },
+                    body: new URLSearchParams({ input_coupon: inputCoupon })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        updateCartTotals(data.discount_amount);  // Apply discount
+                        document.querySelector('.discount-code-wrapper').style.display = 'none'; // Hide coupon section
+                    } else {
+                        alert("Invalid Coupon");
+                    }
+                })
+                .catch(error => console.error('Error applying coupon:', error));
             });
         }
     
-        // Update the total amount when the page loads
-        updateCartTotal();
+        // Initial total calculation on page load
+        updateCartTotals();
     });
+    
     </script>
-<script>
-      function updateQuantityOnServer(productId, newQuantity, productRow) {
-    fetch('/cart/update_quantity/', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': csrfToken,
-        },
-        body: JSON.stringify({
-            product_id: productId,
-            quantity: newQuantity
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            // Update UI
-            productRow.querySelector('.cart-plus-minus-box').value = data.new_quantity;
-            productRow.querySelector('.product-subtotal').textContent = data.subtotal + '/-';
-            productRow.querySelector('.available-stock').textContent = data.available_stock;
-            productRow.querySelector('.stock-warning').textContent = ''; // Clear warnings
-            updateCartTotal(); // Update the cart total
-        } else {
-            // Show error message
-            const warningElem = productRow.querySelector('.stock-warning');
-            if (warningElem) {
-                warningElem.textContent = data.message;
-            }
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        const warningElem = productRow.querySelector('.stock-warning');
-        if (warningElem) {
-            warningElem.textContent = 'Error updating quantity. Please try again.';
-        }
-    });
-}
-</script>
+    
 {% endblock %}
