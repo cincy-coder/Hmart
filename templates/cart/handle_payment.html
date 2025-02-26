@@ -36,6 +36,8 @@
 </head>
 <body>
     <h1>Payment Status</h1>
+
+    
     <button class="success" onclick="handlePayment('success')">Success</button>
     <button class="failure" onclick="handlePayment('failure')">Failure</button>
 
@@ -46,7 +48,7 @@
                 window.location.href = "/thanku";
             } else if (status === 'failure') {
                 // Redirect to failure page
-                window.location.href = "payment-failure";
+                window.location.href = "/payment-failure";
             }
         }
     </script>
