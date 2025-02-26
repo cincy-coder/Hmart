@@ -136,4 +136,28 @@
         }
     }
 </style>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const form = document.querySelector('.custom-form');
+
+        form.addEventListener("submit", function (event) {
+            const fields = form.querySelectorAll("input[type='text']"); 
+            const allowedPattern = /^[A-Za-z0-9 -]+$/; // Allows letters, numbers, spaces, and hyphens
+            let errorMessage = "";
+
+            fields.forEach(field => {
+                if (!allowedPattern.test(field.value.trim())) {
+                    errorMessage += `${field.name.replace('_', ' ')} can only contain letters, numbers, spaces, and hyphens.\n`;
+                }
+            });
+
+            if (errorMessage) {
+                alert(errorMessage);
+                event.preventDefault(); // Stop form submission
+            }
+        });
+    });
+</script>
+
+
 {% endblock %}
