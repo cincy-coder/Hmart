@@ -101,5 +101,30 @@
         </div>
         <!-- login area end -->
 
-
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                const registerForm = document.querySelector('form[action="{% url 'register' %}"]');
+        
+                registerForm.addEventListener("submit", function (event) {
+                    const firstName = registerForm.querySelector('input[name="first_name"]').value;
+                    const lastName = registerForm.querySelector('input[name="last_name"]').value;
+                    const namePattern = /^[A-Za-z]+$/; // Only allows letters
+        
+                    let errorMessage = "";
+        
+                    if (!namePattern.test(firstName)) {
+                        errorMessage += "First name should only contain letters.\n";
+                    }
+                    if (!namePattern.test(lastName)) {
+                        errorMessage += "Last name should only contain letters.\n";
+                    }
+        
+                    if (errorMessage) {
+                        alert(errorMessage);
+                        event.preventDefault(); // Stop form submission
+                    }
+                });
+            });
+        </script>
+        
 {% endblock %}
